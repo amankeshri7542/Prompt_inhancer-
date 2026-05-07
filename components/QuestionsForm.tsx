@@ -2,72 +2,89 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, HelpCircle } from 'lucide-react';
 
 interface QuestionsFormProps {
-    questions: string[];
-    onSubmit: (answers: Record<string, string>) => void;
-    isLoading: boolean;
+  questions: string[];
+  onSubmit: (answers: Record<string, string>) => void;
+  isLoading: boolean;
+  onCancel: () => void;
 }
 
-export default function QuestionsForm({ questions, onSubmit, isLoading }: QuestionsFormProps) {
-    const [answers, setAnswers] = useState<Record<string, string>>({});
+export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel }: QuestionsFormProps) {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSubmit(answers);
-    };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(answers);
+  };
 
-    return (
-        <motion.form
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-2xl mt-6 space-y-6"
-            onSubmit={handleSubmit}
+  return (
+    <motion.form
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full bg-white/[0.02] border border-white/10 backdrop-blur-xl rounded-2xl p-6"
+      onSubmit={handleSubmit}
+    >
+      <div className="flex items-center gap-2 mb-5">
+        <div className="p-1.5 rounded-lg bg-purple-500/15 text-purple-300">
+          <HelpCircle size={16} />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-white">Clarifying questions</h3>
+          <p className="text-xs text-neutral-500">Answer to tailor the final prompt</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {questions.map((q, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.06 }}
+          >
+            <label className="block text-sm font-medium text-neutral-200 mb-1.5">
+              <span className="text-neutral-500 mr-2">{i + 1}.</span>{q}
+            </label>
+            <textarea
+              required
+              rows={2}
+              className="w-full bg-white/5 border border-white/10 hover:border-white/20 text-neutral-100 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition resize-none placeholder:text-neutral-600"
+              placeholder="Your answer..."
+              value={answers[q] || ''}
+              onChange={(e) => setAnswers((p) => ({ ...p, [q]: e.target.value }))}
+            />
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="flex justify-between items-center mt-6">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-sm text-neutral-500 hover:text-neutral-300 transition"
         >
-            <div className="space-y-4">
-                {questions.map((question, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="space-y-2"
-                    >
-                        <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                            {question}
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all"
-                            placeholder="Your answer..."
-                            value={answers[question] || ''}
-                            onChange={(e) => setAnswers(prev => ({ ...prev, [question]: e.target.value }))}
-                        />
-                    </motion.div>
-                ))}
-            </div>
-
-            <div className="flex justify-end">
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="animate-spin" size={18} />
-                            Enhancing...
-                        </>
-                    ) : (
-                        <>
-                            Generate Final Prompt
-                            <ArrowRight size={18} />
-                        </>
-                    )}
-                </button>
-            </div>
-        </motion.form>
-    );
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" size={15} />
+              Generating...
+            </>
+          ) : (
+            <>
+              Generate prompt
+              <ArrowRight size={15} />
+            </>
+          )}
+        </button>
+      </div>
+    </motion.form>
+  );
 }

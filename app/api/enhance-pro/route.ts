@@ -1,56 +1,53 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { checkRateLimit } from '@/utils/rate-limit';
+import { buildSystemPrompt } from '@/lib/prompt-templates';
+import type { ProEnhanceRequest } from '@/lib/types';
+import { DEFAULT_PROFILE } from '@/lib/types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API });
 
 export async function POST(req: Request) {
   try {
-    const { allowed, cookieName, newValue, limit } = await checkRateLimit('pro');
+    const body = (await req.json()) as Partial<ProEnhanceRequest>;
+    const { prompt, answers, targetLLM, taskType, technique, profile } = body;
 
-    if (!allowed) {
-      return NextResponse.json(
-        { error: `Daily limit of ${limit} reached for Pro Mode.` },
-        { status: 429 }
-      );
+    if (!prompt || !answers || !targetLLM || !taskType || !technique) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { prompt, answers } = await req.json(); // answers is expected to be an object or array of {question, answer}
+    const systemPrompt = buildSystemPrompt({
+      targetLLM,
+      taskType,
+      technique,
+      profile: profile ?? DEFAULT_PROFILE,
+      isProFinal: true,
+    });
 
-    if (!prompt || !answers) {
-      return NextResponse.json({ error: 'Prompt and answers are required' }, { status: 400 });
-    }
+    const answersBlock = Object.entries(answers)
+      .map(([q, a]) => `Q: ${q}\nA: ${a}`)
+      .join('\n\n');
 
-    const answersContext = typeof answers === 'string' ? answers : JSON.stringify(answers, null, 2);
+    const userMessage = `INITIAL IDEA:
+${prompt}
+
+CLARIFYING ANSWERS:
+${answersBlock}
+
+Construct the perfect prompt now.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
+      temperature: 0.7,
       messages: [
-        {
-          role: "system",
-          content: "You are an expert prompt engineer. Construct a comprehensive, high-quality prompt based on the user's initial idea and their answers to clarifying questions. The final prompt should be structure, detailed, and ready to paste into an LLM. Return ONLY the enhanced prompt."
-        },
-        {
-          role: "user",
-          content: `Initial Idea: "${prompt}"\n\nClarifying Info:\n${answersContext}\n\nCreate the perfect prompt.`
-        }
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
       ],
     });
 
-    const enhancedPrompt = completion.choices[0].message.content;
-
-    const response = NextResponse.json({ enhancedPrompt });
-    response.cookies.set(cookieName, newValue, { 
-      path: '/',
-      maxAge: 60 * 60 * 24, // 24 hours
-      sameSite: 'strict',
-    });
-
-    return response;
+    const enhancedPrompt = completion.choices[0].message.content ?? '';
+    return NextResponse.json({ enhancedPrompt });
   } catch (error) {
-    console.error('Error enhancing pro prompt:', error);
+    console.error('enhance-pro error:', error);
     return NextResponse.json({ error: 'Failed to enhance prompt' }, { status: 500 });
   }
 }
