@@ -89,7 +89,7 @@ export default function Toolbar(props: ToolbarProps) {
               onClick={() => setMode('fast')}
               className={clsx(
                 'relative z-10 flex-1 rounded-md flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors',
-                mode === 'fast' ? 'text-[#1a1206]' : 'text-[var(--muted)] hover:text-[var(--text)]'
+                mode === 'fast' ? 'text-[var(--on-accent)]' : 'text-[var(--muted)] hover:text-[var(--text)]'
               )}
             >
               <Zap size={13} /> Fast
@@ -98,7 +98,7 @@ export default function Toolbar(props: ToolbarProps) {
               onClick={() => setMode('pro')}
               className={clsx(
                 'relative z-10 flex-1 rounded-md flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors',
-                mode === 'pro' ? 'text-[#1a1206]' : 'text-[var(--muted)] hover:text-[var(--text)]'
+                mode === 'pro' ? 'text-[var(--on-accent)]' : 'text-[var(--muted)] hover:text-[var(--text)]'
               )}
             >
               <Sparkles size={13} /> Pro

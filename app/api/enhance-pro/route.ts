@@ -44,7 +44,7 @@ Construct the perfect prompt now.`;
     });
 
     const enhancedPrompt = completion.choices[0].message.content ?? '';
-    return NextResponse.json({ enhancedPrompt });
+    return NextResponse.json({ enhancedPrompt, model: completion.model });
   } catch (error) {
     if (error instanceof Error && error.message === MISSING_API_KEY) {
       return NextResponse.json(

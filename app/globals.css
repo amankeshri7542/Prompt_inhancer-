@@ -7,21 +7,34 @@
 }
 
 :root {
-  /* Warm "precision instrument" palette — ink + amber/ember, no blue/purple. */
-  --bg: #0b0b0d;
-  --bg-tint: #100d0a;
-  --surface: rgba(255, 250, 242, 0.025);
-  --surface-2: rgba(255, 250, 242, 0.045);
-  --border: rgba(255, 240, 220, 0.09);
-  --border-strong: rgba(255, 240, 220, 0.16);
-  --text: #ece7df;
-  --muted: #8c857a;
-  --faint: #5f594f;
+  /* "Bioluminescent ocean depth" — lime → emerald → teal → deep blue. */
+  --lime-cream: #d9ed92;
+  --light-green: #b5e48c;
+  --light-green-2: #99d98c;
+  --emerald: #76c893;
+  --ocean-mist: #52b69a;
+  --tropical-teal: #34a0a4;
+  --bondi-blue: #168aad;
+  --cerulean: #1a759f;
+  --baltic-blue: #1e6091;
+  --yale-blue: #184e77;
 
-  --accent: #f5a623; /* amber */
-  --accent-2: #ff7a33; /* ember */
-  --accent-soft: rgba(245, 166, 35, 0.12);
-  --good: #5ec6a0; /* muted teal for success */
+  --bg: #04141c; /* deep ocean ink */
+  --bg-tint: #07212c; /* raised navy */
+  --surface: rgba(170, 235, 215, 0.03);
+  --surface-2: rgba(170, 235, 215, 0.055);
+  --border: rgba(140, 225, 200, 0.10);
+  --border-strong: rgba(140, 225, 200, 0.19);
+  --text: #e7f3ef;
+  --muted: #8eb2ab;
+  --faint: #5d7d77;
+
+  --accent: #76c893; /* emerald — primary signal */
+  --accent-2: #34a0a4; /* tropical teal */
+  --accent-deep: #168aad; /* bondi blue — gradient tail */
+  --accent-soft: rgba(82, 182, 154, 0.14);
+  --on-accent: #04141c; /* deep-ink text on the bright accent */
+  --good: #b5e48c; /* light green for success */
 
   --background: var(--bg);
   --foreground: var(--text);
@@ -75,19 +88,19 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(245, 166, 35, 0.18);
+  background: rgba(82, 182, 154, 0.22);
   border-radius: 8px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 166, 35, 0.32);
+  background: rgba(82, 182, 154, 0.38);
   background-clip: padding-box;
 }
 
 ::selection {
-  background: rgba(245, 166, 35, 0.32);
-  color: #fff;
+  background: rgba(118, 200, 147, 0.32);
+  color: #04141c;
 }
 
 /* Larger, comfortable tap targets on touch devices. */

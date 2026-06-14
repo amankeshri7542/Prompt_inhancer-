@@ -18,16 +18,16 @@ function sparkle(cx, cy, R, ratio = 0.16) {
 const defs = `
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFC861"/>
-      <stop offset="0.55" stop-color="#F59E2C"/>
-      <stop offset="1" stop-color="#E0641A"/>
+      <stop offset="0" stop-color="#b5e48c"/>
+      <stop offset="0.5" stop-color="#34a0a4"/>
+      <stop offset="1" stop-color="#168aad"/>
     </linearGradient>
     <radialGradient id="gloss" cx="0.3" cy="0.24" r="0.85">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.40"/>
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/>
       <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
     <filter id="sh" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#3a1c00" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#022029" flood-opacity="0.28"/>
     </filter>
   </defs>`;
 
@@ -37,8 +37,8 @@ function fullBleed() {
     ${defs}
     <rect width="512" height="512" fill="url(#bg)"/>
     <rect width="512" height="512" fill="url(#gloss)"/>
-    <path d="${sparkle(256, 256, 150)}" fill="#2A1606" filter="url(#sh)"/>
-    <path d="${sparkle(382, 138, 38)}" fill="#FFF4DE" opacity="0.92"/>
+    <path d="${sparkle(256, 256, 150)}" fill="#04141c" filter="url(#sh)"/>
+    <path d="${sparkle(382, 138, 38)}" fill="#eafbe0" opacity="0.92"/>
   </svg>`;
 }
 
@@ -48,7 +48,7 @@ function maskable() {
     ${defs}
     <rect width="512" height="512" fill="url(#bg)"/>
     <rect width="512" height="512" fill="url(#gloss)"/>
-    <path d="${sparkle(256, 256, 138)}" fill="#2A1606" filter="url(#sh)"/>
+    <path d="${sparkle(256, 256, 138)}" fill="#04141c" filter="url(#sh)"/>
   </svg>`;
 }
 
@@ -58,8 +58,8 @@ function rounded() {
     ${defs}
     <rect width="512" height="512" rx="112" fill="url(#bg)"/>
     <rect width="512" height="512" rx="112" fill="url(#gloss)"/>
-    <path d="${sparkle(256, 256, 150)}" fill="#2A1606" filter="url(#sh)"/>
-    <path d="${sparkle(382, 138, 38)}" fill="#FFF4DE" opacity="0.92"/>
+    <path d="${sparkle(256, 256, 150)}" fill="#04141c" filter="url(#sh)"/>
+    <path d="${sparkle(382, 138, 38)}" fill="#eafbe0" opacity="0.92"/>
   </svg>`;
 }
 

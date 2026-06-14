@@ -15,9 +15,9 @@ export const LENGTH_LABELS: Record<PromptLength, string> = {
 
 /** Approximate target word count per length, surfaced in the UI as a hint. */
 export const LENGTH_HINTS: Record<PromptLength, string> = {
-  compact: '~120–220 words',
-  standard: '~280–480 words',
-  comprehensive: '~550–900 words',
+  compact: '≤ 150 words',
+  standard: '~350 words',
+  comprehensive: '600+ words',
 };
 
 export const TASK_LABELS: Record<TaskType, string> = {
@@ -132,18 +132,19 @@ const TECHNIQUE_GUIDANCE: Record<Technique, string> = {
 };
 
 const LENGTH_GUIDANCE: Record<PromptLength, string> = {
-  compact: `Target length: COMPACT (${LENGTH_HINTS.compact}).
-- Include only the essential CO-STAR elements; merge closely related sections.
-- One-line persona, a tight objective, the few constraints that matter, and an explicit output format.
-- No examples. Keep any reasoning instruction to a single sentence.
-- Every line must earn its place — zero redundancy, zero filler.`,
+  compact: `Target length: COMPACT — a HARD CAP of 150 words for the ENTIRE prompt (aim well under it).
+This cap OVERRIDES every structural mandate below: merge or drop any CO-STAR dimension that doesn't change the output, skip section headers, and write terse prose or a few short lines.
+- One short persona clause, the core objective, only the constraints that matter, and a one-line output spec.
+- No examples. No separate reasoning/"## Reasoning Steps" section. No filler, no restating.
+- Count your words. If you approach 150, cut — never exceed it.`,
 
-  standard: `Target length: STANDARD (${LENGTH_HINTS.standard}).
-- Full CO-STAR coverage with moderate detail in each section.
-- Clear persona, context, constraints, and a precise output specification.
-- Include explicit reasoning steps only when the task is non-trivial; at most one short example.`,
+  standard: `Target length: STANDARD — aim for ~350 words (stay within roughly 300–400).
+- Cover the CO-STAR dimensions concisely, with light section headers.
+- Clear persona, context, the constraints that matter, and a precise output specification.
+- Include a brief reasoning instruction only for non-trivial tasks; at most one short example.
+- Be thorough but disciplined — do not pad toward the comprehensive length.`,
 
-  comprehensive: `Target length: COMPREHENSIVE (${LENGTH_HINTS.comprehensive}).
+  comprehensive: `Target length: COMPREHENSIVE — 600+ words, scaled to the task's real complexity.
 - Exhaustive scaffolding: a detailed persona, rich context, edge cases, and explicit constraints.
 - Include 1–2 worked examples where they help, plus a step-by-step reasoning section.
 - Spell out the output format in full (schema / named sections). Leave nothing implicit.`,
@@ -195,7 +196,7 @@ For any non-trivial task, include explicit reasoning instructions:
 For Claude, use a \`<thinking>\` block. For GPT/Gemini/Grok, use a "## Reasoning Steps" section that lists the procedural steps the model should follow.
 
 ═══ OUTPUT FORMATTING (mandatory, explicit) ═══
-NEVER leave the output format implicit. Always include a "## Output Format" (or \`<output_format>\` for Claude) section that specifies EXACTLY what to return:
+Never leave the output format implicit (at COMPACT length a single line is enough; otherwise a full section). Specify EXACTLY what to return:
 - For code: language, file paths, function signatures, and whether multiple files should appear in a single fenced block or separate blocks.
 - For data: full JSON schema with field types, or a Markdown table with named columns.
 - For prose: required sections in order, with brief descriptions of what each section contains.
@@ -223,7 +224,7 @@ ${LENGTH_GUIDANCE[length]}
 ═══ HARD RULES ═══
 1. Output ONLY the final enhanced prompt. No preamble, no commentary, no "Here is your prompt:" — just the prompt itself, ready to paste into the target LLM.
 2. Open with a specific, experienced persona (never "You are an AI").
-3. Cover ALL six CO-STAR dimensions explicitly (Context, Objective, Style, Tone, Audience, Response Format).
+3. Cover the CO-STAR dimensions at a depth that fits the TARGET LENGTH — at Compact, merge or omit dimensions that don't change the output; at Standard and Comprehensive, cover all six explicitly.
 4. Use delimiters (### / XML tags / """) to separate instructions from data.
 5. Include explicit chain-of-thought instructions for non-trivial tasks.
 6. Define the output format precisely — schema, sections, or structure.
@@ -231,7 +232,7 @@ ${LENGTH_GUIDANCE[length]}
 8. Apply the prompting technique structurally — do NOT mention its name in the output.
 9. Honor the user's style profile in tone, audience, and output format.
 10. Be concrete, specific, and actionable. Zero filler. Zero disclaimers.
-11. Respect the TARGET LENGTH above — match the requested depth and word-count band.
+11. Respect the TARGET LENGTH above as a HARD constraint — the word-count band/cap takes priority over completeness of structure. When in doubt, be shorter.
 ${isProFinal ? '12. The user answered clarifying questions — weave their answers in as concrete constraints, not as Q&A pairs.' : ''}`;
 }
 

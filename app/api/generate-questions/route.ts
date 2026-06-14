@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       ? parsed.questions.filter((q: unknown) => typeof q === 'string')
       : [];
 
-    return NextResponse.json({ questions });
+    return NextResponse.json({ questions, model: completion.model });
   } catch (error) {
     if (error instanceof Error && error.message === MISSING_API_KEY) {
       return NextResponse.json(

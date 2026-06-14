@@ -218,15 +218,15 @@ export default function Home() {
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-40 -left-32 h-[560px] w-[560px] rounded-full bg-[var(--accent)]/[0.10] blur-[130px]" />
         <div className="absolute top-1/4 -right-40 h-[560px] w-[560px] rounded-full bg-[var(--accent-2)]/[0.08] blur-[130px]" />
-        <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full bg-[#ffba6b]/[0.05] blur-[110px]" />
+        <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full bg-[var(--accent-deep)]/[0.07] blur-[110px]" />
       </div>
 
       {/* Top bar */}
       <header className="safe-top safe-x sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/65 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-2)] shadow-lg shadow-[var(--accent)]/25">
-              <Wand2 size={17} className="text-[#1a1206]" />
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--light-green-2)] via-[var(--accent-2)] to-[var(--accent-deep)] shadow-lg shadow-[var(--accent-2)]/30">
+              <Wand2 size={17} className="text-[var(--on-accent)]" />
             </div>
             <div className="leading-tight">
               <h1 className="font-display text-[17px] font-semibold tracking-tight italic">Prompt Enhancer</h1>
@@ -284,7 +284,7 @@ export default function Home() {
                         <button
                           onClick={handleEnhance}
                           disabled={!prompt.trim() || busy}
-                          className="group/btn relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-[#1a1206] shadow-lg shadow-[var(--accent)]/25 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="group/btn relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-[var(--on-accent)] shadow-lg shadow-[var(--accent)]/25 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {busy ? (
                             <Loader2 className="animate-spin" size={15} />
@@ -344,7 +344,7 @@ export default function Home() {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={reset}
-                        className="flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-3 py-1.5 text-xs font-semibold text-[#1a1206] shadow-md shadow-[var(--accent)]/20 transition hover:brightness-110"
+                        className="flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-3 py-1.5 text-xs font-semibold text-[var(--on-accent)] shadow-md shadow-[var(--accent)]/20 transition hover:brightness-110"
                       >
                         <Plus size={13} /> New prompt
                       </button>

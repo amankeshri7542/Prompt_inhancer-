@@ -70,7 +70,7 @@ export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[#1a1206] text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-lg shadow-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[var(--on-accent)] text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-lg shadow-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           {isLoading ? (
             <>

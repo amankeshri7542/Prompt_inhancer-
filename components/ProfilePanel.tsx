@@ -82,7 +82,7 @@ function PanelContent({ onClose, profile, onSave }: ProfilePanelProps) {
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => { onSave(draft); onClose(); }}
-                  className="flex-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[#1a1206] text-sm font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-[var(--accent)]/20 transition"
+                  className="flex-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[var(--on-accent)] text-sm font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-[var(--accent)]/20 transition"
                 >
                   <Save size={15} /> Save profile
                 </button>
