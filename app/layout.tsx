@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +12,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Editorial serif for the brand / display moments — characterful, not generic.
+const fraunces = Fraunces({
+  variable: "--font-display",
+  subsets: ["latin"],
+  axes: ["SOFT", "opsz"],
+  style: ["normal", "italic"],
+});
+
+const APP_NAME = "Prompt Enhancer";
+const APP_DESC =
+  "A personal prompt-engineering studio — turn rough ideas into production-grade prompts for GPT, Claude, Gemini, and Grok.";
+
 export const metadata: Metadata = {
-  title: "Prompt Enhancer",
-  description: "Personal prompt engineering toolkit — optimize prompts for GPT, Claude, Gemini, and Grok.",
+  applicationName: APP_NAME,
+  title: {
+    default: `${APP_NAME} — production-grade prompts`,
+    template: `%s · ${APP_NAME}`,
+  },
+  description: APP_DESC,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Enhancer",
+  },
+  formatDetection: { telephone: false },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  openGraph: {
+    title: `${APP_NAME} — production-grade prompts`,
+    description: APP_DESC,
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0b0d",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // extend under the iPhone notch / home indicator
 };
 
 export default function RootLayout({
@@ -25,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased`}
       >
         {children}
       </body>

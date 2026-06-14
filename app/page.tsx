@@ -4,14 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wand2, Loader2, Sparkles, Settings, Plus, Pencil } from 'lucide-react';
 import Toolbar from '@/components/Toolbar';
+import LengthSelector from '@/components/LengthSelector';
 import ResultDisplay from '@/components/ResultDisplay';
 import QuestionsForm from '@/components/QuestionsForm';
 import HistoryPanel from '@/components/HistoryPanel';
 import ProfilePanel from '@/components/ProfilePanel';
+import InstallHint from '@/components/InstallHint';
 import type {
   TargetLLM,
   TaskType,
   Technique,
+  PromptLength,
   Mode,
   StyleProfile,
   HistoryItem,
@@ -24,6 +27,7 @@ const LS_PREFS = 'prompt-enhancer:prefs';
 const HISTORY_LIMIT = 5;
 
 type Step = 'input' | 'questions' | 'result';
+type ResultMeta = { targetLLM: TargetLLM; taskType: TaskType; technique: Technique; length: PromptLength };
 
 export default function Home() {
   const [profile, setProfile] = useState<StyleProfile>(DEFAULT_PROFILE);
@@ -33,12 +37,13 @@ export default function Home() {
   const [targetLLM, setTargetLLM] = useState<TargetLLM>('gpt');
   const [taskType, setTaskType] = useState<TaskType>('coding');
   const [technique, setTechnique] = useState<Technique>('auto');
+  const [length, setLength] = useState<PromptLength>('standard');
   const [mode, setMode] = useState<Mode>('fast');
 
   const [prompt, setPrompt] = useState('');
   const [questions, setQuestions] = useState<string[]>([]);
   const [result, setResult] = useState('');
-  const [resultMeta, setResultMeta] = useState<{ targetLLM: TargetLLM; taskType: TaskType; technique: Technique } | null>(null);
+  const [resultMeta, setResultMeta] = useState<ResultMeta | null>(null);
   const [step, setStep] = useState<Step>('input');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +65,7 @@ export default function Home() {
         if (parsed.targetLLM) setTargetLLM(parsed.targetLLM);
         if (parsed.taskType) setTaskType(parsed.taskType);
         if (parsed.technique) setTechnique(parsed.technique);
+        if (parsed.length) setLength(parsed.length);
         if (parsed.mode) setMode(parsed.mode);
       }
     } catch {
@@ -69,8 +75,8 @@ export default function Home() {
 
   // Persist prefs whenever they change
   useEffect(() => {
-    localStorage.setItem(LS_PREFS, JSON.stringify({ targetLLM, taskType, technique, mode }));
-  }, [targetLLM, taskType, technique, mode]);
+    localStorage.setItem(LS_PREFS, JSON.stringify({ targetLLM, taskType, technique, length, mode }));
+  }, [targetLLM, taskType, technique, length, mode]);
 
   const saveProfile = (p: StyleProfile) => {
     setProfile(p);
@@ -102,7 +108,7 @@ export default function Home() {
         const res = await fetch('/api/enhance-fast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, targetLLM, taskType, technique, profile }),
+          body: JSON.stringify({ prompt, targetLLM, taskType, technique, length, profile }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -110,14 +116,14 @@ export default function Home() {
           return;
         }
         setResult(data.enhancedPrompt);
-        setResultMeta({ targetLLM, taskType, technique });
+        setResultMeta({ targetLLM, taskType, technique, length });
         setStep('result');
         addToHistory({
           id: crypto.randomUUID(),
           createdAt: Date.now(),
           original: prompt,
           enhanced: data.enhancedPrompt,
-          targetLLM, taskType, technique, mode,
+          targetLLM, taskType, technique, length, mode,
         });
       } else {
         const res = await fetch('/api/generate-questions', {
@@ -152,7 +158,7 @@ export default function Home() {
       const res = await fetch('/api/enhance-pro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, answers, targetLLM, taskType, technique, profile }),
+        body: JSON.stringify({ prompt, answers, targetLLM, taskType, technique, length, profile }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -160,14 +166,14 @@ export default function Home() {
         return;
       }
       setResult(data.enhancedPrompt);
-      setResultMeta({ targetLLM, taskType, technique });
+      setResultMeta({ targetLLM, taskType, technique, length });
       setStep('result');
       addToHistory({
         id: crypto.randomUUID(),
         createdAt: Date.now(),
         original: prompt,
         enhanced: data.enhancedPrompt,
-        targetLLM, taskType, technique, mode: 'pro',
+        targetLLM, taskType, technique, length, mode: 'pro',
       });
     } catch (e) {
       console.error(e);
@@ -187,20 +193,19 @@ export default function Home() {
   };
 
   const editCurrent = () => {
-    // Go back to input step but keep the prompt so user can tweak and re-run
     setStep('input');
     setQuestions([]);
     setError(null);
   };
 
   const loadFromHistory = (item: HistoryItem) => {
-    // Load into editable input step, prefilled with original prompt + same settings.
     setPrompt(item.original);
     setResult(item.enhanced);
-    setResultMeta({ targetLLM: item.targetLLM, taskType: item.taskType, technique: item.technique });
+    setResultMeta({ targetLLM: item.targetLLM, taskType: item.taskType, technique: item.technique, length: item.length });
     setTargetLLM(item.targetLLM);
     setTaskType(item.taskType);
     setTechnique(item.technique);
+    setLength(item.length);
     setMode(item.mode);
     setQuestions([]);
     setError(null);
@@ -208,30 +213,29 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#070709] text-neutral-100 relative overflow-hidden">
-      {/* Ambient background */}
+    <main className="grain relative min-h-[100dvh] overflow-hidden bg-[var(--bg)] text-[var(--text)]">
+      {/* Ambient warmth */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-cyan-500/[0.06] rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.08),transparent_50%)]" />
+        <div className="absolute -top-40 -left-32 h-[560px] w-[560px] rounded-full bg-[var(--accent)]/[0.10] blur-[130px]" />
+        <div className="absolute top-1/4 -right-40 h-[560px] w-[560px] rounded-full bg-[var(--accent-2)]/[0.08] blur-[130px]" />
+        <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full bg-[#ffba6b]/[0.05] blur-[110px]" />
       </div>
 
       {/* Top bar */}
-      <header className="relative z-20 border-b border-white/5 backdrop-blur-xl bg-black/20">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="safe-top safe-x sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/65 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <Wand2 size={17} className="text-white" />
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-2)] shadow-lg shadow-[var(--accent)]/25">
+              <Wand2 size={17} className="text-[#1a1206]" />
             </div>
-            <div>
-              <h1 className="text-base font-semibold tracking-tight">Prompt Enhancer</h1>
-              <p className="text-[11px] text-neutral-500 -mt-0.5">Personal prompt engineering toolkit</p>
+            <div className="leading-tight">
+              <h1 className="font-display text-[17px] font-semibold tracking-tight italic">Prompt Enhancer</h1>
+              <p className="-mt-0.5 text-[11px] text-[var(--faint)]">Personal prompt-engineering studio</p>
             </div>
           </div>
           <button
             onClick={() => setProfileOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg text-sm text-neutral-300 hover:text-white transition"
+            className="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--text)]"
           >
             <Settings size={14} />
             <span className="hidden sm:inline">Profile</span>
@@ -240,10 +244,10 @@ export default function Home() {
       </header>
 
       {/* Main grid */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
+      <div className="safe-x safe-bottom relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px] lg:gap-6">
           {/* Workspace */}
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             <Toolbar
               targetLLM={targetLLM} setTargetLLM={setTargetLLM}
               taskType={taskType} setTaskType={setTaskType}
@@ -260,26 +264,32 @@ export default function Home() {
                   exit={{ opacity: 0, y: -8 }}
                   className="space-y-4"
                 >
-                  <div className="relative group">
-                    <div className="absolute -inset-px bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-2xl opacity-0 group-focus-within:opacity-100 blur transition duration-500" />
-                    <div className="relative bg-white/[0.02] border border-white/10 backdrop-blur-xl rounded-2xl">
+                  <div className="group relative">
+                    <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[var(--accent)]/30 to-[var(--accent-2)]/30 opacity-0 blur transition duration-500 group-focus-within:opacity-100" />
+                    <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl">
                       <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Describe what you want the AI to do..."
-                        className="w-full h-44 p-5 bg-transparent rounded-2xl outline-none resize-none text-neutral-100 placeholder:text-neutral-600 text-base leading-relaxed"
+                        placeholder="Describe what you want the AI to do…"
+                        className="h-40 w-full resize-none rounded-t-2xl bg-transparent p-4 text-base leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--faint)] sm:h-44 sm:p-5"
                       />
-                      <div className="flex items-center justify-between px-5 py-3 border-t border-white/5">
-                        <span className="text-xs text-neutral-500">{prompt.length} chars</span>
+
+                      {/* Length chooser — pick depth before generating */}
+                      <div className="border-t border-[var(--border)] px-4 py-3.5 sm:px-5">
+                        <LengthSelector value={length} onChange={setLength} />
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] px-4 py-3 sm:px-5">
+                        <span className="font-mono text-xs text-[var(--faint)]">{prompt.length} chars</span>
                         <button
                           onClick={handleEnhance}
                           disabled={!prompt.trim() || busy}
-                          className="group/btn relative inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-lg shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          className="group/btn relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-[#1a1206] shadow-lg shadow-[var(--accent)]/25 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {busy ? (
                             <Loader2 className="animate-spin" size={15} />
                           ) : (
-                            <Sparkles size={15} className="group-hover/btn:rotate-12 transition-transform" />
+                            <Sparkles size={15} className="transition-transform group-hover/btn:rotate-12" />
                           )}
                           {mode === 'fast' ? 'Enhance' : 'Start Pro Mode'}
                         </button>
@@ -291,7 +301,7 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-lg"
+                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"
                     >
                       {error}
                     </motion.div>
@@ -314,7 +324,7 @@ export default function Home() {
                     onCancel={reset}
                   />
                   {error && (
-                    <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-lg">
+                    <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                       {error}
                     </div>
                   )}
@@ -329,23 +339,23 @@ export default function Home() {
                   exit={{ opacity: 0, y: -8 }}
                   className="space-y-4"
                 >
-                  {/* Top action bar — sticky so it stays visible on long results */}
-                  <div className="sticky top-2 z-10 flex items-center justify-between gap-2 bg-white/[0.03] border border-white/10 backdrop-blur-xl rounded-xl px-3 py-2">
+                  {/* Sticky action bar */}
+                  <div className="sticky top-[68px] z-10 flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 backdrop-blur-xl">
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={reset}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-md shadow-md shadow-blue-500/20 transition"
+                        className="flex items-center gap-1.5 rounded-md bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-3 py-1.5 text-xs font-semibold text-[#1a1206] shadow-md shadow-[var(--accent)]/20 transition hover:brightness-110"
                       >
                         <Plus size={13} /> New prompt
                       </button>
                       <button
                         onClick={editCurrent}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-neutral-300 hover:text-white rounded-md transition"
+                        className="flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--muted)] transition hover:border-[var(--border-strong)] hover:text-[var(--text)]"
                       >
-                        <Pencil size={12} /> Edit & re-run
+                        <Pencil size={12} /> Edit &amp; re-run
                       </button>
                     </div>
-                    <span className="text-[10px] text-neutral-500 hidden sm:inline">Saved to history</span>
+                    <span className="hidden text-[10px] text-[var(--faint)] sm:inline">Saved to history</span>
                   </div>
 
                   <ResultDisplay result={result} meta={resultMeta ?? undefined} />
@@ -355,7 +365,7 @@ export default function Home() {
           </div>
 
           {/* Sidebar */}
-          <aside className="lg:sticky lg:top-6 self-start">
+          <aside className="self-start lg:sticky lg:top-[88px]">
             <HistoryPanel items={history} onSelect={loadFromHistory} onClear={clearHistory} />
           </aside>
         </div>
@@ -367,6 +377,8 @@ export default function Home() {
         profile={profile}
         onSave={saveProfile}
       />
+
+      <InstallHint />
     </main>
   );
 }

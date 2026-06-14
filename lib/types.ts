@@ -20,6 +20,8 @@ export type Technique =
 
 export type Mode = 'fast' | 'pro';
 
+export type PromptLength = 'compact' | 'standard' | 'comprehensive';
+
 export interface StyleProfile {
   tone: string;
   audience: string;
@@ -34,6 +36,7 @@ export interface EnhanceRequest {
   targetLLM: TargetLLM;
   taskType: TaskType;
   technique: Technique;
+  length: PromptLength;
   profile: StyleProfile;
 }
 
@@ -49,6 +52,7 @@ export interface HistoryItem {
   targetLLM: TargetLLM;
   taskType: TaskType;
   technique: Technique;
+  length: PromptLength;
   mode: Mode;
 }
 

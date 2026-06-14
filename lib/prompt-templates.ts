@@ -1,10 +1,23 @@
-import type { TargetLLM, TaskType, Technique, StyleProfile } from './types';
+import type { TargetLLM, TaskType, Technique, PromptLength, StyleProfile } from './types';
 
 export const LLM_LABELS: Record<TargetLLM, string> = {
-  gpt: 'ChatGPT (GPT-4o/5)',
+  gpt: 'ChatGPT (GPT-5)',
   claude: 'Claude (Sonnet/Opus)',
   gemini: 'Gemini 2.5',
   grok: 'Grok',
+};
+
+export const LENGTH_LABELS: Record<PromptLength, string> = {
+  compact: 'Compact',
+  standard: 'Standard',
+  comprehensive: 'Comprehensive',
+};
+
+/** Approximate target word count per length, surfaced in the UI as a hint. */
+export const LENGTH_HINTS: Record<PromptLength, string> = {
+  compact: '~120–220 words',
+  standard: '~280–480 words',
+  comprehensive: '~550–900 words',
 };
 
 export const TASK_LABELS: Record<TaskType, string> = {
@@ -118,14 +131,33 @@ const TECHNIQUE_GUIDANCE: Record<Technique, string> = {
   'role-based': 'Open with a strong role/persona assignment ("You are a senior X with Y years of experience in Z"). Anchor expertise, perspective, and standards before the task.',
 };
 
+const LENGTH_GUIDANCE: Record<PromptLength, string> = {
+  compact: `Target length: COMPACT (${LENGTH_HINTS.compact}).
+- Include only the essential CO-STAR elements; merge closely related sections.
+- One-line persona, a tight objective, the few constraints that matter, and an explicit output format.
+- No examples. Keep any reasoning instruction to a single sentence.
+- Every line must earn its place — zero redundancy, zero filler.`,
+
+  standard: `Target length: STANDARD (${LENGTH_HINTS.standard}).
+- Full CO-STAR coverage with moderate detail in each section.
+- Clear persona, context, constraints, and a precise output specification.
+- Include explicit reasoning steps only when the task is non-trivial; at most one short example.`,
+
+  comprehensive: `Target length: COMPREHENSIVE (${LENGTH_HINTS.comprehensive}).
+- Exhaustive scaffolding: a detailed persona, rich context, edge cases, and explicit constraints.
+- Include 1–2 worked examples where they help, plus a step-by-step reasoning section.
+- Spell out the output format in full (schema / named sections). Leave nothing implicit.`,
+};
+
 export function buildSystemPrompt(opts: {
   targetLLM: TargetLLM;
   taskType: TaskType;
   technique: Technique;
+  length: PromptLength;
   profile: StyleProfile;
   isProFinal?: boolean;
 }): string {
-  const { targetLLM, taskType, technique, profile, isProFinal } = opts;
+  const { targetLLM, taskType, technique, length, profile, isProFinal } = opts;
 
   return `You are an elite prompt engineer. Your job is to transform the user's rough idea into a production-grade prompt using the CO-STAR framework, a strong persona, explicit delimiters, chain-of-thought scaffolding, and a precise output specification — optimized for a specific target LLM and task type.
 
@@ -178,6 +210,9 @@ ${TASK_GUIDANCE[taskType]}
 ═══ PROMPTING TECHNIQUE ═══
 ${TECHNIQUE_GUIDANCE[technique]}
 
+═══ TARGET LENGTH ═══
+${LENGTH_GUIDANCE[length]}
+
 ═══ USER'S PERSONAL STYLE PROFILE ═══
 - Tone: ${profile.tone}
 - Audience: ${profile.audience}
@@ -196,7 +231,8 @@ ${TECHNIQUE_GUIDANCE[technique]}
 8. Apply the prompting technique structurally — do NOT mention its name in the output.
 9. Honor the user's style profile in tone, audience, and output format.
 10. Be concrete, specific, and actionable. Zero filler. Zero disclaimers.
-${isProFinal ? '11. The user answered clarifying questions — weave their answers in as concrete constraints, not as Q&A pairs.' : ''}`;
+11. Respect the TARGET LENGTH above — match the requested depth and word-count band.
+${isProFinal ? '12. The user answered clarifying questions — weave their answers in as concrete constraints, not as Q&A pairs.' : ''}`;
 }
 
 export function buildQuestionsSystemPrompt(taskType: TaskType): string {

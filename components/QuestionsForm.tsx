@@ -23,16 +23,16 @@ export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel
     <motion.form
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full bg-white/[0.02] border border-white/10 backdrop-blur-xl rounded-2xl p-6"
+      className="w-full bg-[var(--surface)] border border-[var(--border)] backdrop-blur-xl rounded-2xl p-5 sm:p-6"
       onSubmit={handleSubmit}
     >
       <div className="flex items-center gap-2 mb-5">
-        <div className="p-1.5 rounded-lg bg-purple-500/15 text-purple-300">
+        <div className="p-1.5 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
           <HelpCircle size={16} />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-white">Clarifying questions</h3>
-          <p className="text-xs text-neutral-500">Answer to tailor the final prompt</p>
+          <h3 className="text-sm font-semibold text-[var(--text)]">Clarifying questions</h3>
+          <p className="text-xs text-[var(--muted)]">Answer to tailor the final prompt</p>
         </div>
       </div>
 
@@ -44,13 +44,13 @@ export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.06 }}
           >
-            <label className="block text-sm font-medium text-neutral-200 mb-1.5">
-              <span className="text-neutral-500 mr-2">{i + 1}.</span>{q}
+            <label className="block text-sm font-medium text-[var(--text)] mb-1.5">
+              <span className="text-[var(--accent)] mr-2 font-mono">{i + 1}.</span>{q}
             </label>
             <textarea
               required
               rows={2}
-              className="w-full bg-white/5 border border-white/10 hover:border-white/20 text-neutral-100 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition resize-none placeholder:text-neutral-600"
+              className="w-full bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--border-strong)] text-[var(--text)] text-sm rounded-lg px-3 py-2.5 outline-none focus:border-[var(--accent)]/55 focus:ring-2 focus:ring-[var(--accent)]/20 transition resize-none placeholder:text-[var(--faint)]"
               placeholder="Your answer..."
               value={answers[q] || ''}
               onChange={(e) => setAnswers((p) => ({ ...p, [q]: e.target.value }))}
@@ -63,14 +63,14 @@ export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-neutral-500 hover:text-neutral-300 transition"
+          className="text-sm text-[var(--muted)] hover:text-[var(--text)] transition"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[#1a1206] text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-lg shadow-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           {isLoading ? (
             <>

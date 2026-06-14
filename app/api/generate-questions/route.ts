@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { getOpenAI, MODEL, MISSING_API_KEY } from '@/lib/openai';
 import { buildQuestionsSystemPrompt } from '@/lib/prompt-templates';
 import type { TaskType } from '@/lib/types';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API });
 
 export async function POST(req: Request) {
   try {
@@ -16,8 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing prompt or taskType' }, { status: 400 });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    const completion = await getOpenAI().chat.completions.create({
+      model: MODEL,
+      reasoning_effort: 'low',
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: buildQuestionsSystemPrompt(taskType) },
@@ -33,6 +32,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ questions });
   } catch (error) {
+    if (error instanceof Error && error.message === MISSING_API_KEY) {
+      return NextResponse.json(
+        { error: 'OpenAI API key is not configured on the server.' },
+        { status: 500 },
+      );
+    }
     console.error('generate-questions error:', error);
     return NextResponse.json({ error: 'Failed to generate questions' }, { status: 500 });
   }
