@@ -1,27 +1,27 @@
 import { NextResponse } from 'next/server';
 import { getOpenAI, MODEL, MISSING_API_KEY } from '@/lib/openai';
 import { buildSystemPrompt } from '@/lib/prompt-templates';
-import type { EnhanceRequest } from '@/lib/types';
-import { DEFAULT_PROFILE } from '@/lib/types';
+import { enforcePromptLength } from '@/lib/prompt-output';
+import { parseEnhanceRequest } from '@/lib/request-validation';
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as Partial<EnhanceRequest>;
-    const { prompt, targetLLM, taskType, technique, length, profile } = body;
-
-    if (!prompt || !targetLLM || !taskType || !technique || !length) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const parsed = parseEnhanceRequest(await req.json());
+    if ('error' in parsed) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
+    const { prompt, targetLLM, taskType, technique, length, profile } = parsed.data;
 
     const systemPrompt = buildSystemPrompt({
       targetLLM,
       taskType,
       technique,
       length,
-      profile: profile ?? DEFAULT_PROFILE,
+      profile,
     });
 
-    const completion = await getOpenAI().chat.completions.create({
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
       model: MODEL,
       reasoning_effort: 'low',
       messages: [
@@ -30,7 +30,14 @@ export async function POST(req: Request) {
       ],
     });
 
-    const enhancedPrompt = completion.choices[0].message.content ?? '';
+    const enhancedPrompt = await enforcePromptLength({
+      openai,
+      prompt: completion.choices[0]?.message.content ?? '',
+      length,
+    });
+    if (!enhancedPrompt) {
+      return NextResponse.json({ error: 'The model returned an empty prompt. Please retry.' }, { status: 502 });
+    }
     return NextResponse.json({ enhancedPrompt, model: completion.model });
   } catch (error) {
     if (error instanceof Error && error.message === MISSING_API_KEY) {

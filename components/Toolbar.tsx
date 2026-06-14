@@ -67,7 +67,7 @@ export default function Toolbar(props: ToolbarProps) {
   const { targetLLM, setTargetLLM, taskType, setTaskType, technique, setTechnique, mode, setMode } = props;
 
   return (
-    <div className="w-full bg-[var(--surface)] border border-[var(--border)] backdrop-blur-xl rounded-2xl p-4">
+    <div className="studio-card w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 backdrop-blur-xl">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Field label="Target LLM" value={targetLLM} onChange={setTargetLLM} options={LLM_LABELS} />
         <Field label="Task type" value={taskType} onChange={setTaskType} options={TASK_LABELS} />
@@ -86,6 +86,7 @@ export default function Toolbar(props: ToolbarProps) {
               transition={{ type: 'spring', stiffness: 400, damping: 32 }}
             />
             <button
+              type="button"
               onClick={() => setMode('fast')}
               className={clsx(
                 'relative z-10 flex-1 rounded-md flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors',
@@ -95,6 +96,7 @@ export default function Toolbar(props: ToolbarProps) {
               <Zap size={13} /> Fast
             </button>
             <button
+              type="button"
               onClick={() => setMode('pro')}
               className={clsx(
                 'relative z-10 flex-1 rounded-md flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors',

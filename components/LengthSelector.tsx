@@ -46,7 +46,7 @@ export default function LengthSelector({ value, onChange }: LengthSelectorProps)
         <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--faint)] font-medium">
           Prompt length
         </span>
-        <span className="text-[10px] text-[var(--faint)] font-mono hidden sm:inline">
+        <span className="font-mono text-[10px] text-[var(--accent)]">
           {LENGTH_HINTS[value]}
         </span>
       </div>
@@ -60,7 +60,7 @@ export default function LengthSelector({ value, onChange }: LengthSelectorProps)
               onClick={() => onChange(key)}
               aria-pressed={active}
               className={clsx(
-                'relative flex flex-col gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors min-h-[58px]',
+                'relative flex min-h-[64px] flex-col gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors',
                 active
                   ? 'border-[var(--accent)]/55 bg-[var(--accent-soft)]'
                   : 'border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]',

@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wand2, Loader2, Sparkles, Settings, Plus, Pencil } from 'lucide-react';
+import {
+  Wand2,
+  Loader2,
+  Sparkles,
+  Settings,
+  Plus,
+  Pencil,
+  ShieldCheck,
+  Gauge,
+} from 'lucide-react';
 import Toolbar from '@/components/Toolbar';
 import LengthSelector from '@/components/LengthSelector';
 import ResultDisplay from '@/components/ResultDisplay';
@@ -25,6 +34,7 @@ const LS_PROFILE = 'prompt-enhancer:profile';
 const LS_HISTORY = 'prompt-enhancer:history';
 const LS_PREFS = 'prompt-enhancer:prefs';
 const HISTORY_LIMIT = 5;
+const MAX_PROMPT_CHARS = 12_000;
 
 type Step = 'input' | 'questions' | 'result';
 type ResultMeta = { targetLLM: TargetLLM; taskType: TaskType; technique: Technique; length: PromptLength };
@@ -209,28 +219,30 @@ export default function Home() {
     setMode(item.mode);
     setQuestions([]);
     setError(null);
-    setStep('input');
+    setStep('result');
   };
 
   return (
     <main className="grain relative min-h-[100dvh] overflow-hidden bg-[var(--bg)] text-[var(--text)]">
-      {/* Ambient warmth */}
+      {/* Ambient depth */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="studio-grid absolute inset-0 opacity-45" />
         <div className="absolute -top-40 -left-32 h-[560px] w-[560px] rounded-full bg-[var(--accent)]/[0.10] blur-[130px]" />
         <div className="absolute top-1/4 -right-40 h-[560px] w-[560px] rounded-full bg-[var(--accent-2)]/[0.08] blur-[130px]" />
         <div className="absolute bottom-0 left-1/3 h-[420px] w-[420px] rounded-full bg-[var(--accent-deep)]/[0.07] blur-[110px]" />
+        <div className="studio-vignette absolute inset-0" />
       </div>
 
       {/* Top bar */}
       <header className="safe-top safe-x sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/65 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--light-green-2)] via-[var(--accent-2)] to-[var(--accent-deep)] shadow-lg shadow-[var(--accent-2)]/30">
+            <div className="brand-mark grid h-10 w-10 place-items-center rounded-[14px] bg-gradient-to-br from-[var(--light-green-2)] via-[var(--accent-2)] to-[var(--accent-deep)] shadow-lg shadow-[var(--accent-2)]/25">
               <Wand2 size={17} className="text-[var(--on-accent)]" />
             </div>
             <div className="leading-tight">
-              <h1 className="font-display text-[17px] font-semibold tracking-tight italic">Prompt Enhancer</h1>
-              <p className="-mt-0.5 text-[11px] text-[var(--faint)]">Personal prompt-engineering studio</p>
+              <h1 className="font-display text-[18px] font-semibold tracking-tight">Prompt Enhancer</h1>
+              <p className="-mt-0.5 text-[10px] uppercase tracking-[0.12em] text-[var(--faint)]">Personal AI studio</p>
             </div>
           </div>
           <button
@@ -244,7 +256,32 @@ export default function Home() {
       </header>
 
       {/* Main grid */}
-      <div className="safe-x safe-bottom relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="safe-main relative z-10 mx-auto max-w-6xl">
+        <section className="mb-7 max-w-3xl sm:mb-9">
+          <span className="kicker">Prompt Studio</span>
+          <h2 className="mt-4 font-display text-[clamp(2.1rem,6.4vw,4rem)] leading-[0.95] tracking-[-0.045em] text-balance">
+            Turn a rough thought into a prompt that{' '}
+            <span className="ink-accent">actually works</span>.
+          </h2>
+          <hr className="rule-line my-5" />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <p className="max-w-xl text-sm leading-6 text-[var(--muted)] sm:text-base">
+              Shape the model, task, technique, and depth. Fast mode gets you there in one pass;
+              Pro mode asks the questions that make the final prompt sharper.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="eyebrow">
+                <ShieldCheck size={12} />
+                Private by design
+              </span>
+              <span className="eyebrow">
+                <Gauge size={12} />
+                Length controlled
+              </span>
+            </div>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px] lg:gap-6">
           {/* Workspace */}
           <div className="space-y-4 sm:space-y-5">
@@ -266,12 +303,24 @@ export default function Home() {
                 >
                   <div className="group relative">
                     <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[var(--accent)]/30 to-[var(--accent-2)]/30 opacity-0 blur transition duration-500 group-focus-within:opacity-100" />
-                    <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl">
+                    <div className="studio-card relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl">
+                      <div className="console-bar border-b border-[var(--border)] px-4 py-2.5 sm:px-5">
+                        <span className="console-dot" />
+                        Your idea
+                        <span className="ml-auto normal-case tracking-normal text-[var(--faint)]">
+                          {mode === 'fast' ? 'Fast · one pass' : 'Pro · guided'}
+                        </span>
+                      </div>
+                      <label htmlFor="prompt-idea" className="sr-only">
+                        Prompt idea
+                      </label>
                       <textarea
+                        id="prompt-idea"
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Describe what you want the AI to do…"
-                        className="h-40 w-full resize-none rounded-t-2xl bg-transparent p-4 text-base leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--faint)] sm:h-44 sm:p-5"
+                        maxLength={MAX_PROMPT_CHARS}
+                        placeholder="Describe the outcome you want, the context that matters, and any constraints…"
+                        className="h-40 w-full resize-none bg-transparent p-4 text-base leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--faint)] sm:h-48 sm:p-5"
                       />
 
                       {/* Length chooser — pick depth before generating */}
@@ -279,12 +328,14 @@ export default function Home() {
                         <LengthSelector value={length} onChange={setLength} />
                       </div>
 
-                      <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] px-4 py-3 sm:px-5">
-                        <span className="font-mono text-xs text-[var(--faint)]">{prompt.length} chars</span>
+                      <div className="flex flex-col items-stretch justify-between gap-3 border-t border-[var(--border)] px-4 py-3 sm:flex-row sm:items-center sm:px-5">
+                        <span className="font-mono text-[11px] text-[var(--faint)]">
+                          {prompt.length.toLocaleString()} / {MAX_PROMPT_CHARS.toLocaleString()} characters
+                        </span>
                         <button
                           onClick={handleEnhance}
                           disabled={!prompt.trim() || busy}
-                          className="group/btn relative inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-[var(--on-accent)] shadow-lg shadow-[var(--accent)]/25 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="primary-action group/btn relative inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-[var(--on-accent)] shadow-lg shadow-[var(--accent)]/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {busy ? (
                             <Loader2 className="animate-spin" size={15} />
@@ -301,7 +352,8 @@ export default function Home() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+                      role="alert"
+                      className="rounded-xl border border-[var(--danger)]/25 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--danger-text)]"
                     >
                       {error}
                     </motion.div>
@@ -324,7 +376,7 @@ export default function Home() {
                     onCancel={reset}
                   />
                   {error && (
-                    <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                    <div role="alert" className="rounded-xl border border-[var(--danger)]/25 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--danger-text)]">
                       {error}
                     </div>
                   )}
@@ -340,7 +392,7 @@ export default function Home() {
                   className="space-y-4"
                 >
                   {/* Sticky action bar */}
-                  <div className="sticky top-[68px] z-10 flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2 backdrop-blur-xl">
+                  <div className="sticky top-[72px] z-10 flex items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-tint)]/90 px-3 py-2 shadow-lg shadow-black/10 backdrop-blur-xl">
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={reset}

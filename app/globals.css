@@ -35,6 +35,8 @@
   --accent-soft: rgba(82, 182, 154, 0.14);
   --on-accent: #04141c; /* deep-ink text on the bright accent */
   --good: #b5e48c; /* light green for success */
+  --danger: #ef6f79;
+  --danger-text: #ffb7bd;
 
   --background: var(--bg);
   --foreground: var(--text);
@@ -52,6 +54,19 @@ body {
   overscroll-behavior-y: none;
 }
 
+button,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 80%, white);
+  outline-offset: 2px;
+}
+
 /* Honour the iPhone safe areas (notch + home indicator) when installed. */
 .safe-top {
   padding-top: env(safe-area-inset-top);
@@ -64,8 +79,137 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+.safe-main {
+  padding:
+    1.5rem calc(1rem + env(safe-area-inset-right))
+    calc(1.5rem + env(safe-area-inset-bottom))
+    calc(1rem + env(safe-area-inset-left));
+}
+
+.profile-panel-header {
+  padding-top: calc(1rem + env(safe-area-inset-top));
+}
+
 .font-display {
   font-family: var(--font-display), Georgia, serif;
+}
+
+.studio-grid {
+  background-image:
+    linear-gradient(rgba(153, 217, 140, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(153, 217, 140, 0.025) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 76%);
+}
+
+.studio-card {
+  box-shadow:
+    0 28px 80px -44px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.brand-mark {
+  position: relative;
+}
+
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 13px;
+  pointer-events: none;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 0.35rem 0.6rem;
+  color: var(--muted);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.primary-action {
+  box-shadow:
+    0 12px 30px -16px color-mix(in srgb, var(--accent) 70%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Editorial kicker — a numbered/labelled lead-in for a section. */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.kicker::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+/* Italic accent inside an otherwise-roman display headline. */
+.ink-accent {
+  font-style: italic;
+  font-weight: 500;
+  color: transparent;
+  background: linear-gradient(100deg, var(--light-green), var(--ocean-mist) 55%, var(--bondi-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Hairline divider with a faint luminous core. */
+.rule-line {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 38%, transparent) 18%,
+    var(--border) 60%,
+    transparent
+  );
+}
+
+/* Console-style label strip atop the input card. */
+.console-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.console-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* Radial vignette so the studio recedes at the edges. */
+.studio-vignette {
+  background: radial-gradient(
+    120% 90% at 50% -10%,
+    transparent 55%,
+    rgba(2, 10, 14, 0.55) 100%
+  );
 }
 
 /* Warm grain/texture overlay for atmosphere. */
@@ -109,5 +253,25 @@ body {
   select,
   [role="button"] {
     touch-action: manipulation;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .safe-main {
+    padding:
+      2rem calc(1.5rem + env(safe-area-inset-right))
+      calc(2rem + env(safe-area-inset-bottom))
+      calc(1.5rem + env(safe-area-inset-left));
   }
 }

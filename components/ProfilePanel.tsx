@@ -44,7 +44,7 @@ function PanelContent({ onClose, profile, onSave }: ProfilePanelProps) {
             transition={{ type: 'spring', stiffness: 350, damping: 35 }}
             className="fixed right-0 top-0 h-full w-full sm:w-[440px] bg-[var(--bg-tint)] border-l border-[var(--border)] z-50 overflow-y-auto safe-bottom"
           >
-            <div className="sticky top-0 bg-[var(--bg-tint)]/90 backdrop-blur-xl border-b border-[var(--border)] px-6 py-4 flex items-center justify-between safe-top">
+            <div className="profile-panel-header sticky top-0 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-tint)]/90 px-6 pb-4 backdrop-blur-xl">
               <div>
                 <h2 className="text-lg font-semibold font-display text-[var(--text)]">Style Profile</h2>
                 <p className="text-xs text-[var(--muted)]">Personalizes every prompt you generate</p>

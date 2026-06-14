@@ -1,10 +1,11 @@
 'use client';
 
-import { Copy, Check, Sparkles, Share2 } from 'lucide-react';
+import { Copy, Check, Sparkles, Share2, CircleCheck, CircleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LLM_LABELS, TASK_LABELS, TECHNIQUE_LABELS, LENGTH_LABELS } from '@/lib/prompt-templates';
 import type { TargetLLM, TaskType, Technique, PromptLength } from '@/lib/types';
+import { LENGTH_LIMITS } from '@/lib/prompt-output';
 
 interface ResultDisplayProps {
   result: string;
@@ -42,10 +43,15 @@ export default function ResultDisplay({ result, meta }: ResultDisplayProps) {
   if (!result) return null;
 
   const words = result.trim().split(/\s+/).filter(Boolean).length;
+  const limits = meta?.length ? LENGTH_LIMITS[meta.length] : null;
+  const withinRange =
+    !limits ||
+    (limits.min === undefined || words >= limits.min) &&
+      (limits.max === undefined || words <= limits.max);
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-      <div className="relative bg-[var(--surface)] border border-[var(--border)] backdrop-blur-xl rounded-2xl overflow-hidden">
+      <div className="studio-card relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--accent)]/55 to-transparent" />
 
         <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3.5 border-b border-[var(--border)]">
@@ -97,8 +103,12 @@ export default function ResultDisplay({ result, meta }: ResultDisplayProps) {
           </pre>
         </div>
 
-        <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-t border-[var(--border)] text-[10px] text-[var(--faint)] font-mono">
-          <span>{words.toLocaleString()} words</span>
+        <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] px-4 py-2.5 font-mono text-[10px] text-[var(--faint)] sm:px-5">
+          <span className={withinRange ? 'flex items-center gap-1.5 text-[var(--good)]' : 'flex items-center gap-1.5 text-[var(--danger-text)]'}>
+            {withinRange ? <CircleCheck size={12} /> : <CircleAlert size={12} />}
+            {words.toLocaleString()} words
+            {limits ? ` · target ${limits.target}` : ''}
+          </span>
           <span>{result.length.toLocaleString()} chars</span>
         </div>
       </div>

@@ -23,7 +23,7 @@ export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel
     <motion.form
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full bg-[var(--surface)] border border-[var(--border)] backdrop-blur-xl rounded-2xl p-5 sm:p-6"
+      className="studio-card w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-xl sm:p-6"
       onSubmit={handleSubmit}
     >
       <div className="flex items-center gap-2 mb-5">
@@ -59,18 +59,18 @@ export default function QuestionsForm({ questions, onSubmit, isLoading, onCancel
         ))}
       </div>
 
-      <div className="flex justify-between items-center mt-6">
+      <div className="mt-6 flex flex-col-reverse items-stretch justify-between gap-3 sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-[var(--muted)] hover:text-[var(--text)] transition"
+          className="min-h-11 rounded-lg px-4 text-sm text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[var(--on-accent)] text-sm font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-lg shadow-[var(--accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="primary-action flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] px-5 py-2.5 text-sm font-semibold text-[var(--on-accent)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? (
             <>

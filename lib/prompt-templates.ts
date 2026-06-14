@@ -16,7 +16,7 @@ export const LENGTH_LABELS: Record<PromptLength, string> = {
 /** Approximate target word count per length, surfaced in the UI as a hint. */
 export const LENGTH_HINTS: Record<PromptLength, string> = {
   compact: '≤ 150 words',
-  standard: '~350 words',
+  standard: '300–400 words',
   comprehensive: '600+ words',
 };
 
@@ -132,19 +132,19 @@ const TECHNIQUE_GUIDANCE: Record<Technique, string> = {
 };
 
 const LENGTH_GUIDANCE: Record<PromptLength, string> = {
-  compact: `Target length: COMPACT — a HARD CAP of 150 words for the ENTIRE prompt (aim well under it).
+  compact: `Target length: COMPACT — write 120–140 words with a HARD CAP of 150 words for the ENTIRE prompt.
 This cap OVERRIDES every structural mandate below: merge or drop any CO-STAR dimension that doesn't change the output, skip section headers, and write terse prose or a few short lines.
 - One short persona clause, the core objective, only the constraints that matter, and a one-line output spec.
 - No examples. No separate reasoning/"## Reasoning Steps" section. No filler, no restating.
 - Count your words. If you approach 150, cut — never exceed it.`,
 
-  standard: `Target length: STANDARD — aim for ~350 words (stay within roughly 300–400).
+  standard: `Target length: STANDARD — stay within 300–400 words.
 - Cover the CO-STAR dimensions concisely, with light section headers.
 - Clear persona, context, the constraints that matter, and a precise output specification.
 - Include a brief reasoning instruction only for non-trivial tasks; at most one short example.
 - Be thorough but disciplined — do not pad toward the comprehensive length.`,
 
-  comprehensive: `Target length: COMPREHENSIVE — 600+ words, scaled to the task's real complexity.
+  comprehensive: `Target length: COMPREHENSIVE — write at least 600 words, scaled to the task's real complexity.
 - Exhaustive scaffolding: a detailed persona, rich context, edge cases, and explicit constraints.
 - Include 1–2 worked examples where they help, plus a step-by-step reasoning section.
 - Spell out the output format in full (schema / named sections). Leave nothing implicit.`,
@@ -160,7 +160,7 @@ export function buildSystemPrompt(opts: {
 }): string {
   const { targetLLM, taskType, technique, length, profile, isProFinal } = opts;
 
-  return `You are an elite prompt engineer. Your job is to transform the user's rough idea into a production-grade prompt using the CO-STAR framework, a strong persona, explicit delimiters, chain-of-thought scaffolding, and a precise output specification — optimized for a specific target LLM and task type.
+  return `You are an elite prompt engineer. Your job is to transform the user's rough idea into a production-grade prompt using the CO-STAR framework, a strong persona, explicit delimiters, reasoning scaffolding, and a precise output specification — optimized for a specific target LLM and task type.
 
 ═══ THE CO-STAR FRAMEWORK (mandatory) ═══
 Every prompt you produce MUST cover these six dimensions, adapted to the target LLM's preferred formatting:
@@ -180,6 +180,7 @@ Examples:
 - "You are a Staff Frontend Engineer with deep expertise in React 19, Next.js App Router, and accessibility (WCAG 2.2)."
 - "You are a Principal Data Engineer with 12 years of experience designing analytical pipelines on BigQuery and dbt."
 Pick the persona based on the user's task — be domain-specific, never generic.
+Fit the persona to the task type: for creative generation (image/video) a concise creative-director or art-director framing beats a "15 years of experience" engineer; only claim a year count when it reads naturally.
 
 ═══ DELIMITERS (mandatory) ═══
 Use clear delimiters to separate instructions from data, examples, and user-supplied content. This prevents prompt injection and ambiguity.
@@ -188,12 +189,12 @@ Use clear delimiters to separate instructions from data, examples, and user-supp
 - Use \`"""..."""\` or \`---\` to wrap user-supplied data, code, or examples.
 Always wrap inputs/data/code with delimiters so the model cannot mistake them for instructions.
 
-═══ CHAIN-OF-THOUGHT SCAFFOLDING ═══
-For any non-trivial task, include explicit reasoning instructions:
-- "Think step-by-step before producing the final output."
-- "Analyze trade-offs of each approach before committing to one."
-- "Internally verify your answer against the constraints, then output."
-For Claude, use a \`<thinking>\` block. For GPT/Gemini/Grok, use a "## Reasoning Steps" section that lists the procedural steps the model should follow.
+═══ REASONING SCAFFOLDING ═══
+For any non-trivial task, instruct the target model to reason and self-check BEFORE answering — but keep that reasoning private by default (modern models reason better when not forced to narrate every step):
+- "Work through the problem and verify your answer against the constraints before responding."
+- "Weigh the trade-offs of each approach internally, then commit to one."
+Only request VISIBLE reasoning when seeing the work is part of the deliverable (e.g. a tutorial, a code review, a math explanation). In that case, ask for a brief, clearly-labeled rationale section — never a raw private-thought dump.
+Match the target's idiom: a \`<thinking>\` block for Claude; a short "## Approach" note for GPT/Gemini/Grok when visible reasoning is wanted.
 
 ═══ OUTPUT FORMATTING (mandatory, explicit) ═══
 Never leave the output format implicit (at COMPACT length a single line is enough; otherwise a full section). Specify EXACTLY what to return:
@@ -226,12 +227,12 @@ ${LENGTH_GUIDANCE[length]}
 2. Open with a specific, experienced persona (never "You are an AI").
 3. Cover the CO-STAR dimensions at a depth that fits the TARGET LENGTH — at Compact, merge or omit dimensions that don't change the output; at Standard and Comprehensive, cover all six explicitly.
 4. Use delimiters (### / XML tags / """) to separate instructions from data.
-5. Include explicit chain-of-thought instructions for non-trivial tasks.
+5. For non-trivial tasks, tell the target model to reason internally and verify its work, without asking it to reveal private chain-of-thought.
 6. Define the output format precisely — schema, sections, or structure.
 7. Match the target LLM's preferred formatting (XML for Claude, Markdown for GPT, numbered for Gemini, direct for Grok).
 8. Apply the prompting technique structurally — do NOT mention its name in the output.
 9. Honor the user's style profile in tone, audience, and output format.
-10. Be concrete, specific, and actionable. Zero filler. Zero disclaimers.
+10. Be concrete, specific, and actionable. Zero filler. Zero disclaimers. Do NOT fabricate facts, names, numbers, schemas, or requirements the user did not supply — where a needed detail is unknown, insert a clearly-bracketed placeholder (e.g. [LANGUAGE], [TARGET AUDIENCE], [SCHEMA]) or state it as an explicit assumption the user can override.
 11. Respect the TARGET LENGTH above as a HARD constraint — the word-count band/cap takes priority over completeness of structure. When in doubt, be shorter.
 ${isProFinal ? '12. The user answered clarifying questions — weave their answers in as concrete constraints, not as Q&A pairs.' : ''}`;
 }
@@ -243,6 +244,11 @@ Generate exactly 3-4 clarifying questions that will most significantly improve t
 - Concrete specifics the user is most likely to have forgotten to mention
 - Constraints, scope, target audience, or output format
 - Domain-specific details relevant to ${TASK_LABELS[taskType]}
+
+Rules:
+- Do NOT ask about anything the user already specified in their idea.
+- Each question must target a different gap — no overlapping or compound questions.
+- Make every question answerable in one short text reply (no open-ended essays).
 
 Return ONLY a JSON object: { "questions": ["Q1", "Q2", "Q3", "Q4"] }
 Each question must be one sentence, direct, and answerable in a short text reply.`;

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Clock, Trash2 } from 'lucide-react';
+import { Clock, Trash2, Archive } from 'lucide-react';
 import type { HistoryItem } from '@/lib/types';
 import { LLM_LABELS, TASK_LABELS } from '@/lib/prompt-templates';
 
@@ -21,7 +21,7 @@ function timeAgo(ts: number) {
 
 export default function HistoryPanel({ items, onSelect, onClear }: HistoryPanelProps) {
   return (
-    <div className="w-full bg-[var(--surface)] border border-[var(--border)] backdrop-blur-xl rounded-2xl p-4">
+    <div className="studio-card w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 backdrop-blur-xl">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Clock size={14} className="text-[var(--muted)]" />
@@ -32,6 +32,7 @@ export default function HistoryPanel({ items, onSelect, onClear }: HistoryPanelP
         {items.length > 0 && (
           <button
             onClick={onClear}
+            aria-label="Clear prompt history"
             className="text-[var(--faint)] hover:text-red-400 transition p-1 rounded"
             title="Clear history"
           >
@@ -41,9 +42,15 @@ export default function HistoryPanel({ items, onSelect, onClear }: HistoryPanelP
       </div>
 
       {items.length === 0 ? (
-        <p className="text-xs text-[var(--faint)] text-center py-6">
-          No history yet — your last 5 prompts will appear here.
-        </p>
+        <div className="flex flex-col items-center px-3 py-7 text-center">
+          <div className="mb-3 grid h-10 w-10 place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-[var(--faint)]">
+            <Archive size={17} />
+          </div>
+          <p className="text-xs font-medium text-[var(--muted)]">Your recent work lives here</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-[var(--faint)]">
+            The last five prompts stay on this device.
+          </p>
+        </div>
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (
