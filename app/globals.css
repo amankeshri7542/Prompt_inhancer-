@@ -1,73 +1,92 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-term);
+  --font-display: var(--font-term);
 }
 
+/*
+ * "Console editorial" — terminal typography set like a print journal.
+ *
+ * The palette carries one piece of information: which surface you are on.
+ * Enhance is violet (generative), Handoff is amber (archival). `--signal` is
+ * re-pointed on <html data-surface="…">, so every accent in the app shifts
+ * together and the mode is legible before you read a single label.
+ */
 :root {
-  /* "Bioluminescent ocean depth" — lime → emerald → teal → deep blue. */
-  --lime-cream: #d9ed92;
-  --light-green: #b5e48c;
-  --light-green-2: #99d98c;
-  --emerald: #76c893;
-  --ocean-mist: #52b69a;
-  --tropical-teal: #34a0a4;
-  --bondi-blue: #168aad;
-  --cerulean: #1a759f;
-  --baltic-blue: #1e6091;
-  --yale-blue: #184e77;
+  /* Ground — cool graphite, never pure black. */
+  --ink: #0f1015;
+  --ink-2: #14151c;
+  --slab: #191b24;
+  --slab-2: #1f212c;
 
-  --bg: #04141c; /* deep ocean ink */
-  --bg-tint: #07212c; /* raised navy */
-  --surface: rgba(170, 235, 215, 0.03);
-  --surface-2: rgba(170, 235, 215, 0.055);
-  --border: rgba(140, 225, 200, 0.10);
-  --border-strong: rgba(140, 225, 200, 0.19);
-  --text: #e7f3ef;
-  --muted: #8eb2ab;
-  --faint: #5d7d77;
+  --line: rgba(210, 216, 240, 0.09);
+  --line-strong: rgba(210, 216, 240, 0.2);
 
-  --accent: #76c893; /* emerald — primary signal */
-  --accent-2: #34a0a4; /* tropical teal */
-  --accent-deep: #168aad; /* bondi blue — gradient tail */
-  --accent-soft: rgba(82, 182, 154, 0.14);
-  --on-accent: #04141c; /* deep-ink text on the bright accent */
-  --good: #b5e48c; /* light green for success */
-  --danger: #ef6f79;
-  --danger-text: #ffb7bd;
+  --chalk: #edeef3;
+  --ash: #979cad;
+  --dim: #666c7e;
 
-  --background: var(--bg);
-  --foreground: var(--text);
+  /* Surface signals */
+  --violet: #8b7cff;
+  --violet-deep: #6a5bd8;
+  --amber: #f0a73b;
+  --amber-deep: #cf8420;
+
+  --good: #5fd39a;
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, 0.12);
+
+  /* Defaults; overridden per surface below. */
+  --signal: var(--violet);
+  --signal-deep: var(--violet-deep);
+  --signal-soft: rgba(139, 124, 255, 0.13);
+  --signal-line: rgba(139, 124, 255, 0.34);
+  --on-signal: #0f1015;
+
+  --background: var(--ink);
+  --foreground: var(--chalk);
   color-scheme: dark;
+}
+
+:root[data-surface="handoff"] {
+  --signal: var(--amber);
+  --signal-deep: var(--amber-deep);
+  --signal-soft: rgba(240, 167, 59, 0.13);
+  --signal-line: rgba(240, 167, 59, 0.34);
+  --on-signal: #1a1204;
 }
 
 html,
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--chalk);
+  font-family: var(--font-body), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* iOS: prevent rubber-band background flash + over-scroll glow. */
+  /* iOS: kill the rubber-band background flash. */
   overscroll-behavior-y: none;
 }
 
 button,
 select,
-textarea {
+textarea,
+input {
   -webkit-tap-highlight-color: transparent;
 }
 
 button:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 80%, white);
+textarea:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--signal);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* Honour the iPhone safe areas (notch + home indicator) when installed. */
+/* ── iPhone safe areas ─────────────────────────────────────────────── */
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }
@@ -78,176 +97,161 @@ textarea:focus-visible {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
-
 .safe-main {
   padding:
-    1.5rem calc(1rem + env(safe-area-inset-right))
-    calc(1.5rem + env(safe-area-inset-bottom))
+    1.25rem calc(1rem + env(safe-area-inset-right))
+    calc(2.5rem + env(safe-area-inset-bottom))
     calc(1rem + env(safe-area-inset-left));
 }
-
-.profile-panel-header {
+.panel-header {
   padding-top: calc(1rem + env(safe-area-inset-top));
 }
 
-.font-display {
-  font-family: var(--font-display), Georgia, serif;
+/* ── Typography ────────────────────────────────────────────────────── */
+/*
+ * The display face is a monospace, set large and tight. Terminal type is this
+ * product's native vernacular; using it editorially (rather than as a fake
+ * terminal window) is the whole typographic idea.
+ */
+.font-term {
+  font-family: var(--font-term), ui-monospace, monospace;
 }
 
-.studio-grid {
-  background-image:
-    linear-gradient(rgba(153, 217, 140, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(153, 217, 140, 0.025) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: linear-gradient(to bottom, black, transparent 76%);
+.display {
+  font-family: var(--font-term), ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
 }
 
-.studio-card {
-  box-shadow:
-    0 28px 80px -44px rgba(0, 0, 0, 0.85),
-    inset 0 1px 0 rgba(255, 255, 255, 0.025);
-}
-
-.brand-mark {
-  position: relative;
-}
-
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 13px;
-  pointer-events: none;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  padding: 0.35rem 0.6rem;
-  color: var(--muted);
+/* Small caps-ish utility label. Used for every field label in the app. */
+.label {
+  font-family: var(--font-term), ui-monospace, monospace;
   font-size: 0.625rem;
-  font-weight: 650;
-  letter-spacing: 0.12em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.primary-action {
-  box-shadow:
-    0 12px 30px -16px color-mix(in srgb, var(--accent) 70%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-/* Editorial kicker — a numbered/labelled lead-in for a section. */
-.kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.kicker::before {
-  content: "";
-  width: 1.75rem;
-  height: 1px;
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
-
-/* Italic accent inside an otherwise-roman display headline. */
-.ink-accent {
-  font-style: italic;
   font-weight: 500;
-  color: transparent;
-  background: linear-gradient(100deg, var(--light-green), var(--ocean-mist) 55%, var(--bondi-blue));
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-/* Hairline divider with a faint luminous core. */
-.rule-line {
-  height: 1px;
-  border: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--accent) 38%, transparent) 18%,
-    var(--border) 60%,
-    transparent
-  );
-}
-
-/* Console-style label strip atop the input card. */
-.console-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.625rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--faint);
-}
-.console-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--dim);
 }
 
-/* Radial vignette so the studio recedes at the edges. */
-.studio-vignette {
-  background: radial-gradient(
-    120% 90% at 50% -10%,
-    transparent 55%,
-    rgba(2, 10, 14, 0.55) 100%
+/* Numeric readouts — tabular so digits don't jitter while streaming. */
+.readout {
+  font-family: var(--font-term), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ── Structure ─────────────────────────────────────────────────────── */
+.slab {
+  background: var(--slab);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.slab-quiet {
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+/*
+ * Bracket rule: a hairline that turns up at the left edge, like the corner of a
+ * drawn frame. Marks the start of a section without a heavy heading.
+ */
+.bracket {
+  position: relative;
+  padding-left: 0.875rem;
+}
+.bracket::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--signal);
+}
+
+.hairline {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, var(--signal-line), var(--line) 32%, transparent);
+}
+
+/*
+ * Entrance for primary content. Deliberately CSS rather than framer-motion:
+ * motion's `initial` inlines opacity:0 into the SSR HTML, so the hero and the
+ * input card would sit blank until hydration — bad on a cold PWA start. A
+ * keyframe animation runs without JS and replays when React remounts on a
+ * `key` change, which is what the surface switch needs.
+ */
+.rise {
+  animation: rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Blinking block cursor, shown while text is streaming in. */
+.cursor::after {
+  content: "▌";
+  color: var(--signal);
+  animation: blink 1.05s steps(2, start) infinite;
+  margin-left: 1px;
+}
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Faint scanline field — atmosphere at the density of a CRT, not a gimmick. */
+.rule-field {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.014) 0px,
+    rgba(255, 255, 255, 0.014) 1px,
+    transparent 1px,
+    transparent 4px
   );
 }
 
-/* Warm grain/texture overlay for atmosphere. */
-.grain::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+.signal-glow {
+  box-shadow: 0 0 0 1px var(--signal-line), 0 18px 50px -28px var(--signal);
 }
 
-/* Custom scrollbar */
+/* ── Scrollbars ────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(82, 182, 154, 0.22);
+  background: rgba(210, 216, 240, 0.16);
   border-radius: 8px;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(82, 182, 154, 0.38);
+  background: rgba(210, 216, 240, 0.3);
   background-clip: padding-box;
 }
 
 ::selection {
-  background: rgba(118, 200, 147, 0.32);
-  color: #04141c;
+  background: var(--signal);
+  color: var(--on-signal);
 }
 
-/* Larger, comfortable tap targets on touch devices. */
 @media (pointer: coarse) {
   button,
   select,
@@ -265,13 +269,16 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  .cursor::after {
+    animation: none;
+  }
 }
 
 @media (min-width: 640px) {
   .safe-main {
     padding:
-      2rem calc(1.5rem + env(safe-area-inset-right))
-      calc(2rem + env(safe-area-inset-bottom))
-      calc(1.5rem + env(safe-area-inset-left));
+      2rem calc(1.75rem + env(safe-area-inset-right))
+      calc(3rem + env(safe-area-inset-bottom))
+      calc(1.75rem + env(safe-area-inset-left));
   }
 }

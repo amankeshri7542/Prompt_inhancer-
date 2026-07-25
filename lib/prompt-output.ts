@@ -1,6 +1,5 @@
-import type OpenAI from 'openai';
-import type { PromptLength } from './types';
-import { MODEL } from './openai';
+import type { PromptLength, RunCost } from './types';
+import { chatComplete } from './ai';
 
 export const LENGTH_LIMITS: Record<
   PromptLength,
@@ -64,25 +63,40 @@ function truncateWords(value: string, maxWords: number): string {
   return clipped.trimEnd().replace(/[,:;\-–—]+$/u, '') + '.';
 }
 
+/** True when the draft already satisfies the length contract, so no repair runs. */
+export function needsLengthRepair(value: string, length: PromptLength): boolean {
+  const cleaned = value.trim();
+  return Boolean(cleaned) && isOutsideLength(cleaned, length);
+}
+
+/**
+ * Second pass that pulls an out-of-band draft back inside its word band.
+ *
+ * This cannot be streamed: whether a draft is too long is only knowable once it
+ * is complete. Routes stream the draft, then announce a `tightening` stage and
+ * send the corrected text in the final event.
+ *
+ * Returns the extra usage so the caller can add it to the run's total cost.
+ */
 export async function enforcePromptLength({
-  openai,
   prompt,
   length,
 }: {
-  openai: OpenAI;
   prompt: string;
   length: PromptLength;
-}): Promise<string> {
+}): Promise<{ text: string; extra: RunCost[] }> {
   const cleaned = prompt.trim();
-  if (!cleaned || !isOutsideLength(cleaned, length)) return cleaned;
+  const extra: RunCost[] = [];
+  if (!cleaned || !isOutsideLength(cleaned, length)) return { text: cleaned, extra };
 
   const limits = LENGTH_LIMITS[length];
   let candidate = cleaned;
 
   for (let attempt = 0; attempt < 2 && isOutsideLength(candidate, length); attempt += 1) {
-    const repair = await openai.chat.completions.create({
-      model: MODEL,
-      reasoning_effort: 'low',
+    const { text, meta } = await chatComplete({
+      reasoning: 'off',
+      maxTokens: 4_000,
+      temperature: 0.2,
       messages: [
         {
           role: 'system',
@@ -96,8 +110,14 @@ Return only the rewritten prompt. Do not discuss the edit or report a word count
       ],
     });
 
-    candidate = repair.choices[0]?.message.content?.trim() || candidate;
+    if (meta.usage) {
+      extra.push({ ...meta.usage, model: meta.model, provider: meta.provider });
+    }
+    candidate = text || candidate;
   }
 
-  return limits.max ? truncateWords(candidate, limits.max) : candidate;
+  return {
+    text: limits.max ? truncateWords(candidate, limits.max) : candidate,
+    extra,
+  };
 }

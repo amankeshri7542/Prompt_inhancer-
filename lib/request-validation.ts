@@ -1,7 +1,13 @@
 import {
   DEFAULT_PROFILE,
+  MAX_TRANSCRIPT_CHARS,
+  MAX_TRANSCRIPT_CHARS_LONG,
+  type BriefLength,
   type EnhanceRequest,
+  type HandoffRequest,
+  type HandoffTarget,
   type PromptLength,
+  type SessionSource,
   type StyleProfile,
   type TargetLLM,
   type TaskType,
@@ -95,4 +101,67 @@ export function parseEnhanceRequest(value: unknown):
 
 export function isTaskType(value: unknown): value is TaskType {
   return TASK_TYPES.has(value as TaskType);
+}
+
+const SESSION_SOURCES = new Set<SessionSource>([
+  'claude-code',
+  'codex',
+  'cursor',
+  'generic',
+]);
+const HANDOFF_TARGETS = new Set<HandoffTarget>([
+  'claude-code',
+  'codex',
+  'cursor',
+  'generic',
+]);
+const BRIEF_LENGTHS = new Set<BriefLength>(['tight', 'standard', 'full']);
+
+const MAX_FOCUS_CHARS = 1_000;
+
+export function parseHandoffRequest(
+  value: unknown,
+): { data: HandoffRequest } | { error: string } {
+  if (!value || typeof value !== 'object') {
+    return { error: 'Request body must be a JSON object.' };
+  }
+
+  const body = value as Partial<HandoffRequest> & { allowLong?: unknown };
+  const transcript = typeof body.transcript === 'string' ? body.transcript.trim() : '';
+
+  if (!transcript) return { error: 'Paste a session transcript first.' };
+  if (transcript.length < 200) {
+    return { error: 'That transcript is too short to summarise. Paste the full session.' };
+  }
+
+  // The cap is what bounds worst-case spend, since the app has no access gate.
+  const cap = body.allowLong === true ? MAX_TRANSCRIPT_CHARS_LONG : MAX_TRANSCRIPT_CHARS;
+  if (transcript.length > cap) {
+    return {
+      error: `Transcript is ${transcript.length.toLocaleString()} characters; the limit is ${cap.toLocaleString()}. ${
+        body.allowLong === true
+          ? 'Split the session and summarise it in two passes.'
+          : 'Turn on "Long session" to raise the limit.'
+      }`,
+    };
+  }
+  if (!SESSION_SOURCES.has(body.source as SessionSource)) {
+    return { error: 'Invalid session source.' };
+  }
+  if (!HANDOFF_TARGETS.has(body.target as HandoffTarget)) {
+    return { error: 'Invalid handoff target.' };
+  }
+  if (!BRIEF_LENGTHS.has(body.briefLength as BriefLength)) {
+    return { error: 'Invalid brief length.' };
+  }
+
+  return {
+    data: {
+      transcript,
+      source: body.source as SessionSource,
+      target: body.target as HandoffTarget,
+      briefLength: body.briefLength as BriefLength,
+      focus: typeof body.focus === 'string' ? body.focus.trim().slice(0, MAX_FOCUS_CHARS) : '',
+    },
+  };
 }

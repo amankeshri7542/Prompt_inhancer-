@@ -1,33 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/**
+ * The display face. Terminal type is this product's native vernacular, so the
+ * monospace does double duty: large and tight for headlines, small and spaced
+ * for labels and numeric readouts.
+ */
+const term = IBM_Plex_Mono({
+  variable: "--font-term",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+/** Body face — narrow and dense, which reads well on a phone. */
+const body = Inter_Tight({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Editorial serif for the brand / display moments — characterful, not generic.
-const fraunces = Fraunces({
-  variable: "--font-display",
-  subsets: ["latin"],
-  axes: ["SOFT", "opsz"],
-  style: ["normal", "italic"],
-});
-
-const APP_NAME = "Prompt Enhancer";
+const APP_NAME = "Prompt Studio";
 const APP_DESC =
-  "A personal prompt-engineering studio — turn rough ideas into production-grade prompts for GPT, Claude, Gemini, and Grok.";
+  "Turn a rough idea into a production-grade prompt, and compress a long agent session into a brief you can paste into a fresh one.";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
-    default: `${APP_NAME} — production-grade prompts`,
+    default: `${APP_NAME} — prompts and session handoffs`,
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESC,
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Enhancer",
+    title: "Studio",
   },
   formatDetection: { telephone: false },
   icons: {
@@ -43,14 +42,14 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
   },
   openGraph: {
-    title: `${APP_NAME} — production-grade prompts`,
+    title: `${APP_NAME} — prompts and session handoffs`,
     description: APP_DESC,
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#04141c",
+  themeColor: "#0f1015",
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
@@ -63,10 +62,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased`}
-      >
+    // data-surface drives the violet/amber signal swap; page.tsx keeps it current.
+    <html lang="en" data-surface="enhance">
+      <body className={`${term.variable} ${body.variable} antialiased`}>
         {children}
       </body>
     </html>

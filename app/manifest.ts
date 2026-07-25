@@ -2,16 +2,16 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Prompt Enhancer',
-    short_name: 'Enhancer',
+    name: 'Prompt Studio',
+    short_name: 'Studio',
     description:
-      'A personal prompt-engineering studio — turn rough ideas into production-grade prompts for GPT, Claude, Gemini, and Grok.',
+      'Turn a rough idea into a production-grade prompt, and compress a long agent session into a brief you can paste into a fresh one.',
     start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#04141c',
-    theme_color: '#04141c',
+    background_color: '#0f1015',
+    theme_color: '#0f1015',
     categories: ['productivity', 'utilities', 'developer'],
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },

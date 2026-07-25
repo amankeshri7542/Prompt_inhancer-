@@ -6,6 +6,7 @@ import { useState } from 'react';
 import type { StyleProfile } from '@/lib/types';
 import { DEFAULT_PROFILE } from '@/lib/types';
 import { LLM_LABELS } from '@/lib/prompt-templates';
+import { Label, Select } from './ui';
 
 interface ProfilePanelProps {
   open: boolean;
@@ -16,9 +17,7 @@ interface ProfilePanelProps {
 
 export default function ProfilePanel(props: ProfilePanelProps) {
   return (
-    <AnimatePresence>
-      {props.open && <PanelContent key="panel" {...props} />}
-    </AnimatePresence>
+    <AnimatePresence>{props.open && <PanelContent key="panel" {...props} />}</AnimatePresence>
   );
 }
 
@@ -35,86 +34,120 @@ function PanelContent({ onClose, profile, onSave }: ProfilePanelProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm"
       />
       <motion.aside
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 350, damping: 35 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-[440px] bg-[var(--bg-tint)] border-l border-[var(--border)] z-50 overflow-y-auto safe-bottom"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+        className="safe-bottom fixed right-0 top-0 z-50 h-full w-full overflow-y-auto border-l border-[var(--line)] bg-[var(--ink-2)] sm:w-[440px]"
+      >
+        <div className="panel-header sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-[var(--line)] bg-[var(--ink-2)]/95 px-5 pb-4 backdrop-blur-xl">
+          <div>
+            <h2 className="display text-lg text-[var(--chalk)]">Style profile</h2>
+            <p className="mt-1 text-xs text-[var(--ash)]">Applied to every prompt you build.</p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-lg p-2 text-[var(--ash)] transition hover:bg-[var(--slab-2)] hover:text-[var(--chalk)]"
           >
-            <div className="profile-panel-header sticky top-0 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-tint)]/90 px-6 pb-4 backdrop-blur-xl">
-              <div>
-                <h2 className="text-lg font-semibold font-display text-[var(--text)]">Style Profile</h2>
-                <p className="text-xs text-[var(--muted)]">Personalizes every prompt you generate</p>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-white/5 rounded-lg text-[var(--muted)] hover:text-[var(--text)] transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
+            <X size={18} />
+          </button>
+        </div>
 
-            <div className="p-6 space-y-5">
-              <FieldArea label="Tone" value={draft.tone} onChange={(v) => update('tone', v)} placeholder="e.g., Professional and direct" />
-              <FieldArea label="Audience" value={draft.audience} onChange={(v) => update('audience', v)} placeholder="e.g., Senior developers" />
-              <FieldArea label="Your identity / context" value={draft.identity} onChange={(v) => update('identity', v)} placeholder="e.g., Full-stack dev building AI tools" rows={2} />
-              <FieldArea label="Preferred output format" value={draft.outputFormat} onChange={(v) => update('outputFormat', v)} placeholder="e.g., Structured markdown" />
-              <FieldArea label="Always avoid" value={draft.avoid} onChange={(v) => update('avoid', v)} placeholder="e.g., Fluff, disclaimers, emojis" rows={2} />
+        <div className="space-y-5 p-5">
+          <Field
+            label="Tone"
+            value={draft.tone}
+            onChange={(v) => update('tone', v)}
+            placeholder="Professional and direct"
+          />
+          <Field
+            label="Audience"
+            value={draft.audience}
+            onChange={(v) => update('audience', v)}
+            placeholder="Senior developers"
+          />
+          <Field
+            label="Your identity"
+            value={draft.identity}
+            onChange={(v) => update('identity', v)}
+            placeholder="Full-stack dev building AI tools"
+            rows={2}
+          />
+          <Field
+            label="Preferred output format"
+            value={draft.outputFormat}
+            onChange={(v) => update('outputFormat', v)}
+            placeholder="Structured markdown"
+          />
+          <Field
+            label="Always avoid"
+            value={draft.avoid}
+            onChange={(v) => update('avoid', v)}
+            placeholder="Fluff, disclaimers, emojis"
+            rows={2}
+          />
 
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[var(--faint)] font-semibold mb-2">
-                  Default target LLM
-                </label>
-                <select
-                  value={draft.defaultLLM}
-                  onChange={(e) => update('defaultLLM', e.target.value as StyleProfile['defaultLLM'])}
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--border-strong)] text-[var(--text)] text-sm rounded-lg px-3 py-2.5 outline-none focus:border-[var(--accent)]/55 focus:ring-2 focus:ring-[var(--accent)]/20 transition"
-                >
-                  {(Object.entries(LLM_LABELS) as [StyleProfile['defaultLLM'], string][]).map(([k, v]) => (
-                    <option key={k} value={k} className="bg-neutral-900">{v}</option>
-                  ))}
-                </select>
-              </div>
+          <Select
+            label="Default target LLM"
+            value={draft.defaultLLM}
+            onChange={(v) => update('defaultLLM', v)}
+            options={LLM_LABELS}
+          />
 
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => { onSave(draft); onClose(); }}
-                  className="flex-1 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] hover:brightness-110 text-[var(--on-accent)] text-sm font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-[var(--accent)]/20 transition"
-                >
-                  <Save size={15} /> Save profile
-                </button>
-                <button
-                  onClick={() => setDraft(DEFAULT_PROFILE)}
-                  className="px-4 py-2.5 bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)] text-sm rounded-lg flex items-center gap-2 transition"
-                  title="Reset to defaults"
-                >
-                  <RotateCcw size={15} />
-                </button>
-              </div>
-            </div>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => {
+                onSave(draft);
+                onClose();
+              }}
+              className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--signal)] px-4 text-sm font-semibold text-[var(--on-signal)] transition hover:brightness-110"
+            >
+              <Save size={15} /> Save profile
+            </button>
+            <button
+              onClick={() => setDraft(DEFAULT_PROFILE)}
+              title="Reset to defaults"
+              aria-label="Reset to defaults"
+              className="flex min-h-11 items-center rounded-xl border border-[var(--line)] bg-[var(--ink-2)] px-4 text-[var(--ash)] transition hover:border-[var(--line-strong)] hover:text-[var(--chalk)]"
+            >
+              <RotateCcw size={15} />
+            </button>
+          </div>
+        </div>
       </motion.aside>
     </>
   );
 }
 
-function FieldArea({
-  label, value, onChange, placeholder, rows = 1,
-}: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 1,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
   return (
-    <div>
-      <label className="block text-[11px] uppercase tracking-wider text-[var(--faint)] font-semibold mb-2">
-        {label}
-      </label>
+    <label className="block">
+      <span className="mb-2 block">
+        <Label>{label}</Label>
+      </span>
       <textarea
         rows={rows}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--border-strong)] text-[var(--text)] text-sm rounded-lg px-3 py-2.5 outline-none focus:border-[var(--accent)]/55 focus:ring-2 focus:ring-[var(--accent)]/20 transition resize-none placeholder:text-[var(--faint)]"
+        className="w-full resize-none rounded-lg border border-[var(--line)] bg-[var(--ink)] px-3 py-2.5 text-sm text-[var(--chalk)] outline-none transition hover:border-[var(--line-strong)] focus:border-[var(--signal)] placeholder:text-[var(--dim)]"
       />
-    </div>
+    </label>
   );
 }

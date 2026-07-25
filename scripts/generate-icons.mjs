@@ -1,5 +1,9 @@
-// One-off icon generator. Renders the brand sparkle to PNGs with sharp.
+// One-off icon generator. Renders the brand mark to PNGs with sharp.
 // Run: node scripts/generate-icons.mjs
+//
+// The mark is a terminal block caret — the same glyph the app blinks while text
+// streams in. Its gradient runs violet → amber, the two surface signals, so the
+// icon carries the app's whole colour system in one shape.
 import sharp from 'sharp';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -8,47 +12,56 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const iconsDir = join(root, 'public', 'icons');
 
-// 4-point sharp star ("sparkle") centred at (cx,cy) with outer radius R.
-function sparkle(cx, cy, R, ratio = 0.16) {
-  const i = R * ratio;
-  const d = i * Math.SQRT1_2;
-  return `M${cx},${cy - R} L${cx + d},${cy - d} L${cx + R},${cy} L${cx + d},${cy + d} L${cx},${cy + R} L${cx - d},${cy + d} L${cx - R},${cy} L${cx - d},${cy - d} Z`;
-}
+const INK = '#0f1015';
 
 const defs = `
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#b5e48c"/>
-      <stop offset="0.5" stop-color="#34a0a4"/>
-      <stop offset="1" stop-color="#168aad"/>
+    <linearGradient id="caret" x1="150" y1="120" x2="362" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b7cff"/>
+      <stop offset="1" stop-color="#f0a73b"/>
     </linearGradient>
-    <radialGradient id="gloss" cx="0.3" cy="0.24" r="0.85">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/>
-      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="sh" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#022029" flood-opacity="0.28"/>
+    <linearGradient id="ground" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#191b24"/>
+      <stop offset="1" stop-color="#0f1015"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#8b7cff" flood-opacity="0.34"/>
     </filter>
   </defs>`;
 
-// Full-bleed tile (OS rounds the corners). Used for PWA + apple-touch-icon.
+/** The caret itself, plus the baseline rule it sits on. */
+function mark(scale = 1) {
+  const w = 104 * scale;
+  const h = 236 * scale;
+  const x = 256 - w / 2;
+  const y = 256 - h / 2 - 12 * scale;
+  const r = 14 * scale;
+
+  const ruleW = 188 * scale;
+  const ruleY = y + h + 30 * scale;
+
+  return `
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"
+          fill="url(#caret)" filter="url(#glow)"/>
+    <rect x="${256 - ruleW / 2}" y="${ruleY}" width="${ruleW}" height="${10 * scale}"
+          rx="${5 * scale}" fill="#edeef3" opacity="0.16"/>`;
+}
+
+// Full-bleed tile (the OS rounds the corners). PWA + apple-touch-icon.
 function fullBleed() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
     ${defs}
-    <rect width="512" height="512" fill="url(#bg)"/>
-    <rect width="512" height="512" fill="url(#gloss)"/>
-    <path d="${sparkle(256, 256, 150)}" fill="#04141c" filter="url(#sh)"/>
-    <path d="${sparkle(382, 138, 38)}" fill="#eafbe0" opacity="0.92"/>
+    <rect width="512" height="512" fill="url(#ground)"/>
+    ${mark(1)}
   </svg>`;
 }
 
-// Maskable: keep the mark inside the central safe circle, no off-centre accent.
+// Maskable: keep the mark inside the central safe circle.
 function maskable() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
     ${defs}
-    <rect width="512" height="512" fill="url(#bg)"/>
-    <rect width="512" height="512" fill="url(#gloss)"/>
-    <path d="${sparkle(256, 256, 138)}" fill="#04141c" filter="url(#sh)"/>
+    <rect width="512" height="512" fill="url(#ground)"/>
+    ${mark(0.76)}
   </svg>`;
 }
 
@@ -56,10 +69,9 @@ function maskable() {
 function rounded() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
     ${defs}
-    <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-    <rect width="512" height="512" rx="112" fill="url(#gloss)"/>
-    <path d="${sparkle(256, 256, 150)}" fill="#04141c" filter="url(#sh)"/>
-    <path d="${sparkle(382, 138, 38)}" fill="#eafbe0" opacity="0.92"/>
+    <rect width="512" height="512" rx="112" fill="url(#ground)"/>
+    <rect width="512" height="512" rx="112" fill="none" stroke="${INK}" stroke-width="2"/>
+    ${mark(1)}
   </svg>`;
 }
 
