@@ -25,11 +25,25 @@ export type PromptLength = 'compact' | 'standard' | 'comprehensive';
 /** Top-level surface. Enhance builds prompts; Handoff resumes agent sessions. */
 export type Surface = 'enhance' | 'handoff';
 
-/** Where the pasted transcript came from — shapes how we read its structure. */
-export type SessionSource = 'claude-code' | 'codex' | 'cursor' | 'generic';
+/** Where the pasted transcript came from — shapes how the model parses its structure. */
+export type SessionSource =
+  | 'claude-code'
+  | 'codex'
+  | 'cursor'
+  | 'gemini'
+  | 'chatgpt'
+  | 'claude-chat'
+  | 'other';
 
 /** Where the brief gets pasted — shapes the brief's own formatting. */
-export type HandoffTarget = 'claude-code' | 'codex' | 'cursor' | 'generic';
+export type HandoffTarget =
+  | 'claude-code'
+  | 'codex'
+  | 'cursor'
+  | 'gemini'
+  | 'chatgpt'
+  | 'claude-chat'
+  | 'other';
 
 export type BriefLength = 'tight' | 'standard' | 'full';
 

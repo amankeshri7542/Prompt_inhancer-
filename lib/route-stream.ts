@@ -27,6 +27,7 @@ export function streamGeneration(opts: {
   messages: ChatMessage[];
   reasoning: Reasoning;
   maxTokens: number;
+  model?: string;
   temperature?: number;
   length?: PromptLength;
   label: string;
@@ -44,6 +45,7 @@ export function streamGeneration(opts: {
           reasoning: opts.reasoning,
           maxTokens: opts.maxTokens,
           temperature: opts.temperature,
+          model: opts.model,
         })) {
           if (event.type === 'delta') {
             draft += event.text;
@@ -73,6 +75,7 @@ export function streamGeneration(opts: {
             const repaired = await enforcePromptLength({
               prompt: finalText,
               length: opts.length,
+              model: opts.model,
             });
             finalText = repaired.text;
             costs.push(...repaired.extra);

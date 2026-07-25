@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { buildSystemPrompt } from '@/lib/prompt-templates';
 import { parseEnhanceRequest } from '@/lib/request-validation';
 import { streamGeneration } from '@/lib/route-stream';
+import { MODELS } from '@/lib/ai';
 
 export const maxDuration = 300;
 
@@ -13,6 +14,7 @@ export async function POST(req: Request) {
   const { prompt, targetLLM, taskType, technique, length, profile } = parsed.data;
 
   return streamGeneration({
+    model: MODELS.enhance,
     label: 'enhance-fast',
     // Reasoning off: this is the one-shot path, and GLM 5.2 reasons at `high`
     // by default — leaving it on makes Fast mode slower than Pro.

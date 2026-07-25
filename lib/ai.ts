@@ -7,28 +7,59 @@
  * so the wrapper is smaller than the casts would be.
  */
 
-export const MODEL = 'z-ai/glm-5.2';
 export const MISSING_API_KEY = 'MISSING_API_KEY';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 /**
- * Provider routing is pinned deliberately — do not remove.
+ * Two models, chosen per job rather than one for everything.
+ *
+ * HANDOFF needs the 1M context window to summarise a whole session in one pass.
+ * ENHANCE is a short, latency-sensitive task where measured instruction-following
+ * matters more than raw intelligence: benchmarked against the real system prompt,
+ * Qwen 3.5 Flash hit both the Compact (≤150w) and Standard (300–400w) word bands
+ * first try and emitted correct XML for Claude targets, in ~2s and at roughly a
+ * tenth of GLM's cost. GLM 5.2 itself missed the Standard band on the same test.
+ */
+export const MODELS = {
+  handoff: 'z-ai/glm-5.2',
+  enhance: 'qwen/qwen3.5-flash-02-23',
+} as const;
+
+/** Back-compat default for callers that don't specify a model. */
+export const MODEL: string = MODELS.handoff;
+
+/**
+ * Provider pin for GLM 5.2 — do not remove.
  *
  * OpenRouter auto-routing served a probe from a 96k-context provider. GLM 5.2's
  * headline 1M window is per-provider, so an unpinned request can silently land
  * somewhere that cannot hold a long session transcript. These three all serve the
  * full 1,048,576-token window at the ~$0.77/M price floor.
- *
- * `data_collection: 'deny'` excludes providers that may retain or train on
- * prompts, which matters because handoff transcripts contain real work.
  */
-const ROUTING = {
+const GLM_ROUTING = {
   only: ['baidu', 'novita', 'streamlake'],
   sort: 'price',
   data_collection: 'deny',
   require_parameters: true,
 } as const;
+
+/**
+ * Everything else routes on price. No `only` pin: the enhance prompt is a few
+ * thousand tokens, so no provider's context limit can truncate it.
+ *
+ * `data_collection: 'deny'` is on both paths — it excludes providers that may
+ * retain or train on prompts, which matters because this app sends real work.
+ */
+const DEFAULT_ROUTING = {
+  sort: 'price',
+  data_collection: 'deny',
+  require_parameters: true,
+} as const;
+
+function routingFor(model: string) {
+  return model === MODELS.handoff ? GLM_ROUTING : DEFAULT_ROUTING;
+}
 
 /** GLM 5.2 reasons by default at `high`, which is far too slow for short calls. */
 export type Reasoning = 'off' | 'high' | 'xhigh';
@@ -55,6 +86,8 @@ export interface ChatOptions {
   messages: ChatMessage[];
   reasoning: Reasoning;
   maxTokens: number;
+  /** Defaults to the handoff model; enhance routes pass MODELS.enhance. */
+  model?: string;
   /** GLM 5.2 accepts temperature (gpt-5-mini did not). Low = repeatable prompts. */
   temperature?: number;
   json?: boolean;
@@ -69,15 +102,16 @@ function apiKey(): string {
 }
 
 function body(opts: ChatOptions, stream: boolean) {
+  const model = opts.model ?? MODEL;
   return JSON.stringify({
-    model: MODEL,
+    model,
     messages: opts.messages,
     max_tokens: opts.maxTokens,
     temperature: opts.temperature ?? 0.3,
     reasoning:
       opts.reasoning === 'off' ? { enabled: false } : { effort: opts.reasoning },
     ...(opts.json ? { response_format: { type: 'json_object' } } : {}),
-    provider: ROUTING,
+    provider: routingFor(model),
     usage: { include: true },
     stream,
   });
@@ -133,7 +167,7 @@ export async function chatComplete(
   return {
     text: (data?.choices?.[0]?.message?.content ?? '').trim(),
     meta: {
-      model: data?.model ?? MODEL,
+      model: data?.model ?? opts.model ?? MODEL,
       provider: data?.provider ?? 'unknown',
       usage: readUsage(data?.usage),
     },
@@ -161,7 +195,7 @@ export async function* chatStream(opts: ChatOptions): AsyncGenerator<StreamEvent
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
-  const meta: ChatMeta = { model: MODEL, provider: 'unknown', usage: null };
+  const meta: ChatMeta = { model: opts.model ?? MODEL, provider: 'unknown', usage: null };
 
   while (true) {
     const { done, value } = await reader.read();

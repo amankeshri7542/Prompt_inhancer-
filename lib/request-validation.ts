@@ -107,13 +107,19 @@ const SESSION_SOURCES = new Set<SessionSource>([
   'claude-code',
   'codex',
   'cursor',
-  'generic',
+  'gemini',
+  'chatgpt',
+  'claude-chat',
+  'other',
 ]);
 const HANDOFF_TARGETS = new Set<HandoffTarget>([
   'claude-code',
   'codex',
   'cursor',
-  'generic',
+  'gemini',
+  'chatgpt',
+  'claude-chat',
+  'other',
 ]);
 const BRIEF_LENGTHS = new Set<BriefLength>(['tight', 'standard', 'full']);
 

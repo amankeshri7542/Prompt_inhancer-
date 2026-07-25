@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { chatComplete, MISSING_API_KEY } from '@/lib/ai';
+import { chatComplete, MISSING_API_KEY, MODELS } from '@/lib/ai';
 import { buildQuestionsSystemPrompt } from '@/lib/prompt-templates';
 import type { TaskType } from '@/lib/types';
 import { isTaskType } from '@/lib/request-validation';
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
     // Not streamed: the client needs the whole JSON object before it can render
     // the question form, so there is nothing to show progressively.
     const { text, meta } = await chatComplete({
+      model: MODELS.enhance,
       reasoning: 'off',
       maxTokens: 1_000,
       json: true,

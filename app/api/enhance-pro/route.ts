@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { buildSystemPrompt } from '@/lib/prompt-templates';
 import { parseEnhanceRequest } from '@/lib/request-validation';
 import { streamGeneration } from '@/lib/route-stream';
+import { MODELS } from '@/lib/ai';
 
 export const maxDuration = 300;
 
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
   }
 
   return streamGeneration({
+    model: MODELS.enhance,
     label: 'enhance-pro',
     // This is the quality path — worth the reasoning latency.
     reasoning: 'high',

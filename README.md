@@ -4,11 +4,11 @@ A personal studio with two surfaces:
 
 **Enhance** — turn a rough idea into a production-grade prompt, structured with the **CO-STAR** framework, a strong persona, explicit delimiters, and an exact output spec, tuned for a specific target LLM, task type, technique, and length.
 
-**Handoff** — paste a long Claude Code, Codex, or Cursor session and get a structured brief you can drop into a fresh session to pick up exactly where you left off.
+**Handoff** — paste a long session from Claude Code, Codex, Cursor, Gemini, ChatGPT, or Claude chat and get a structured brief you can drop into a fresh session to pick up exactly where you left off. Works for research and planning conversations, not just coding.
 
 **Live:** https://prompt-inhancer.vercel.app/
 
-Built with Next.js 16 (App Router) and **GLM 5.2** via OpenRouter. Installs to your iPhone home screen as a full-screen PWA.
+Built with Next.js 16 (App Router) and two models via OpenRouter — **GLM 5.2** for handoffs (1M context) and **Qwen 3.5 Flash** for prompt building. Installs to your iPhone home screen as a full-screen PWA.
 
 ## Enhance
 
@@ -25,10 +25,12 @@ Built with Next.js 16 (App Router) and **GLM 5.2** via OpenRouter. Installs to y
 
 Ran out of context mid-session? Copy the whole conversation out of your terminal and paste it in.
 
-- **Eight fixed sections** — Mission, Current state, Key decisions, Layout, Conventions & gotchas, Open problems, Next steps, and **Dead ends** (approaches already tried and rejected, so the next session doesn't repeat them).
+- **Adaptive sections** — Mission, Current state, and Next steps always; Key decisions, **Key facts**, Open questions, **Dead ends**, Layout, and Conventions only where the session has material for them. A research chat gets key facts and sources; a coding session gets file paths and gotchas. No empty headings either way.
+- **Dead ends are kept deliberately** — approaches already tried and rejected, so the next session doesn't repeat the work.
 - **Evidence vs. assertion** — work is marked "verified" only when the transcript shows proof, otherwise "claimed, unverified".
 - **Formatted for where it's going** — XML sections for Claude Code, Markdown for Codex and Cursor.
 - **Secrets scrubbed before sending** — API keys, tokens, JWTs, and `KEY=value` lines are stripped in your browser, with a count of what was removed so you can check it.
+- **Injection-resistant** — a pasted transcript is untrusted input full of instructions meant for a different assistant. It's fenced with a per-request random id so it can't "close" its own block, and commands found inside are described rather than restated, so the brief can't act on whatever reads it next.
 - **Compression readout** — see how many tokens went in, how many came out, and the ratio.
 - **Focus steer** — optionally tell it which thread of the session to weight.
 

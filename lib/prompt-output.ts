@@ -81,9 +81,11 @@ export function needsLengthRepair(value: string, length: PromptLength): boolean 
 export async function enforcePromptLength({
   prompt,
   length,
+  model,
 }: {
   prompt: string;
   length: PromptLength;
+  model?: string;
 }): Promise<{ text: string; extra: RunCost[] }> {
   const cleaned = prompt.trim();
   const extra: RunCost[] = [];
@@ -97,6 +99,7 @@ export async function enforcePromptLength({
       reasoning: 'off',
       maxTokens: 4_000,
       temperature: 0.2,
+      model,
       messages: [
         {
           role: 'system',

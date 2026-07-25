@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import {
   buildHandoffSystemPrompt,
@@ -5,6 +6,7 @@ import {
 } from '@/lib/handoff-templates';
 import { parseHandoffRequest } from '@/lib/request-validation';
 import { streamGeneration } from '@/lib/route-stream';
+import { MODELS } from '@/lib/ai';
 import type { BriefLength } from '@/lib/types';
 
 export const maxDuration = 300;
@@ -23,8 +25,14 @@ export async function POST(req: Request) {
   }
   const { transcript, source, target, briefLength, focus } = parsed.data;
 
+  // Unguessable per-request delimiter id. A fixed marker could be spoofed by a
+  // transcript containing that marker, letting pasted text "close" the data
+  // block and have the rest read as instructions. The caller can't predict this.
+  const nonce = randomUUID().slice(0, 8);
+
   return streamGeneration({
     label: 'handoff',
+    model: MODELS.handoff,
     // Long-context synthesis across a whole session — the reasoning earns its cost.
     reasoning: 'high',
     maxTokens: MAX_TOKENS[briefLength],
@@ -35,9 +43,9 @@ export async function POST(req: Request) {
     messages: [
       {
         role: 'system',
-        content: buildHandoffSystemPrompt({ source, target, briefLength, focus }),
+        content: buildHandoffSystemPrompt({ source, target, briefLength, focus, nonce }),
       },
-      { role: 'user', content: buildHandoffUserMessage(transcript) },
+      { role: 'user', content: buildHandoffUserMessage(transcript, nonce) },
     ],
   });
 }

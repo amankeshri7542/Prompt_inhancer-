@@ -16,16 +16,19 @@ The Handoff surface exists because the owner works daily in Claude Code, Codex, 
 
 Every prompt is built from **CO-STAR** (Context, Objective, Style, Tone, Audience, Response format) + a specific persona + delimiters + an explicit output spec, formatted per target LLM (XML for Claude, Markdown for GPT, numbered for Gemini, lean for Grok).
 
-**Handoff.** Paste a session transcript, pick where it came from and where it's going, choose brief length, optionally add a focus steer. The brief always has the same eight sections: Mission, Current state, Key decisions, Layout, Conventions & gotchas, Open problems, Next steps, Dead ends.
+**Handoff.** Paste a session transcript from any assistant, pick where it came from and where it's going, choose brief length, optionally add a focus steer.
+
+Sections are **adaptive**: Mission, Current state, and Next steps always appear; Key decisions, Key facts, Open questions, Dead ends, Layout, and Conventions appear only where the transcript has material for them. A research chat gets Key facts and no file layout; a coding session gets the reverse. An early fixed, coding-shaped section list caused a Gemini hosting chat to come back with empty headings and a complaint that the transcript "wasn't a coding session" — that was a prompt design bug, now fixed.
 
 State (profile, prefs, both histories) is local-only (`localStorage`). The server is four thin OpenRouter proxy routes.
 
 ## Key decisions
-- **Model = `z-ai/glm-5.2` via OpenRouter** (replaced `gpt-5-mini` in v6). Chosen for its 1M-token context, which lets a whole session be summarised in one pass with no chunking. ~$0.77/M in, $2.42/M out.
+- **Two models, chosen per job** (both via OpenRouter, replacing `gpt-5-mini` in v6). Handoff runs **`z-ai/glm-5.2`** for its 1M-token context, which summarises a whole session in one pass with no chunking (~$0.77/M in, $2.42/M out). Enhance runs **`qwen/qwen3.5-flash-02-23`** (~$0.07/$0.26), picked by benchmarking six Chinese models against the real system prompt: it was the only fast model to hit both the Compact and Standard word bands first try, at ~10× lower cost. GLM 5.2 itself missed the Standard band.
 - **Provider routing is pinned** to `baidu|novita|streamlake`. The 1M window is per-provider — unpinned auto-routing served a test from a 96k-context provider. Pinning also holds the price floor and denies data collection.
 - **Length is a hard constraint**, not a hint — Compact deliberately overrides CO-STAR completeness to stay short. This was a real bug (prompts came out far too long), fixed in v5 and still enforced.
 - **Streaming with a visible second stage.** Length enforcement can't stream, so the UI shows `Drafting → Tightening` rather than silently replacing text.
 - **Secrets are scrubbed client-side** before a transcript is sent, with a visible count so over-redaction is catchable.
+- **Injection defense uses a per-request nonce.** The transcript is wrapped in `<transcript id="NONCE">`; a fixed marker would be spoofable by pasted text. The prompt also tells the model to describe commands rather than restate them, since the brief gets pasted into another agent.
 - **No auth; size caps instead.** Transcript caps (400k chars, 2.8M with "Long session") are the only thing bounding worst-case spend.
 - **Design**: "console editorial" — terminal typography (IBM Plex Mono as a display face) set like a print journal, on cool graphite. One signal colour that changes per surface: violet for Enhance, amber for Handoff.
 
